@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>MCP Plugin — ASC Docs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+    <header class="top-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <a class="header-logo" href="../index.html"><div class="logo-icon">A</div><span>ASC Docs</span></a>
+                <nav class="header-nav">
+                    <a href="overview.html">Docs</a>
+                    <a href="agent.html" class="active">Modules</a>
+                    <a href="../developer.html">Dev</a>
+                </nav>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l3.04 3.04a.75.75 0 1 1-1.06 1.06l-3.04-3.04Z"/></svg>
+                    <span>Search docs...</span><kbd>⌘K</kbd>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <aside class="sidebar">
+        <div class="sidebar-section"><div class="sidebar-label">Getting Started</div>
+            <nav class="sidebar-nav">
+                <a href="overview.html">Overview</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Core Modules</div>
+            <nav class="sidebar-nav">
+                <a href="agent.html">Runtime</a>
+                <a href="tools.html">Tools</a>
+                <a href="skills.html">Skills</a>
+                <a href="memory.html">Memory</a>
+                <a href="mcp.html">Services</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Infrastructure</div>
+            <nav class="sidebar-nav">
+                <a href="context.html">Context</a>
+                <a href="prompt.html">Prompt</a>
+                <a href="permissions.html">Permissions</a>
+                <a href="subagent.html">SubAgent</a>
+                <a href="session.html">Session</a>
+                <a href="ui.html">UI</a>
+                <a href="mcp-plugin.html" class="active">MCP Plugin</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Reference</div>
+            <nav class="sidebar-nav">
+                <a href="../developer.html">Developer Guide</a>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="main-content" id="main-content">
+        <div class="content-wrap">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a><span class="sep">/</span>
+            <a href="overview.html">Docs</a><span class="sep">/</span>
+        </div>
+        <article id="article">
+
+            <script type="text/markdown" id="md">
+# MCP 客户端实现
+
+本页面介绍 MCP 连接的内部工作原理。关于 MCP 的概念和使用方式，请参阅 [服务与集成](mcp.html)。
+
+## 连接是怎么建立的
+
+当你第一次调用 MCP 工具时，ASC 会自动完成以下步骤：
+
+1. **读取配置**：从配置文件里找到 MCP 服务器的启动命令
+2. **启动服务器**：把 MCP 服务器作为子进程启动
+3. **握手**：和服务器确认协议版本（就像两个人确认"我们说同一种语言"）
+4. **发现能力**：问服务器"你会做什么工具？"，获取工具列表
+
+之后每次调用工具，ASC 直接把请求发给已经连接好的服务器。
+
+## 自动重连：连接断了也不怕
+
+MCP 服务器的连接可能会断——比如服务器进程崩溃了、网络出了问题。ASC 会自动检测并重连：
+
+1. 发现连接断了
+2. 清理旧连接
+3. 重新启动服务器
+4. 重新握手
+5. 恢复工具调用
+
+整个过程自动完成，你不需要手动干预。就像手机自动重连 WiFi——断了就重连，你甚至不会注意到。
+
+## 延迟加载：不用的不启动
+
+ASC 不会在启动时就连接所有 MCP 服务器——而是在第一次调用时才连接。这避免了启动时的不必要开销。
+
+就像你不会在开机时就打开所有 App——需要哪个开哪个。
+
+## 配置变更自动检测
+
+如果你修改了 MCP 服务器的配置（比如换了启动命令），ASC 会自动检测到变化，重建连接。不需要重启 ASC。
+
+## 健康监控：随时查看连接状态
+
+用 `/mcp` 命令可以查看所有 MCP 服务器的状态：
+- 哪些服务器是连通的
+- 每个服务器提供哪些工具
+- 有没有连接错误
+- 配置来自哪个文件
+
+这就像查看网络连接状态——一眼就能看出哪个通、哪个断。
+
+## 设计哲学
+
+### 自动化一切可以自动化的
+
+连接、重连、加载、检测——所有这些都不需要你手动操作。ASC 把复杂性藏在内部，你只需要关心"用什么工具"，不需要关心"怎么连接"。
+
+### 透明的状态
+
+虽然连接管理是自动的，但状态是透明的。你随时可以用 `/mcp` 查看所有连接的状态。没有黑箱。
+            </script>
+
+
+        </article>
+        </div><aside class="toc-panel">
+            <div class="toc-title">本页目录</div>
+            <div id="toc" class="toc-list"></div>
+        </aside>
+    </main>
+
+    <script src="../lang.js"></script>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Overview — ASC Docs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+    <header class="top-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <a class="header-logo" href="../index.html"><div class="logo-icon">A</div><span>ASC Docs</span></a>
+                <nav class="header-nav">
+                    <a href="overview.html" class="active">Docs</a>
+                    <a href="agent.html">Modules</a>
+                    <a href="../developer.html">Dev</a>
+                </nav>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l3.04 3.04a.75.75 0 1 1-1.06 1.06l-3.04-3.04Z"/></svg>
+                    <span>Search docs...</span><kbd>⌘K</kbd>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <aside class="sidebar">
+        <div class="sidebar-section"><div class="sidebar-label">Getting Started</div>
+            <nav class="sidebar-nav">
+                <a href="overview.html" class="active">Overview</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Core Modules</div>
+            <nav class="sidebar-nav">
+                <a href="agent.html">Runtime</a>
+                <a href="tools.html">Tools</a>
+                <a href="skills.html">Skills</a>
+                <a href="memory.html">Memory</a>
+                <a href="mcp.html">Services</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Infrastructure</div>
+            <nav class="sidebar-nav">
+                <a href="context.html">Context</a>
+                <a href="prompt.html">Prompt</a>
+                <a href="permissions.html">Permissions</a>
+                <a href="subagent.html">SubAgent</a>
+                <a href="session.html">Session</a>
+                <a href="ui.html">UI</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Reference</div>
+            <nav class="sidebar-nav">
+                <a href="../developer.html">Developer Guide</a>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="main-content" id="main-content">
+        <div class="content-wrap">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a><span class="sep">/</span>
+            <a href="overview.html">Docs</a><span class="sep">/</span>
+            <a href="overview.html">Overview</a>
+        </div>
+        <article id="article">
+
+            <script type="text/markdown" id="md">
+# 系统概览
+
+## ASC 是什么
+
+想象一下：你坐在工位上，面前是几百个 Subsystem 的 Simulink 模型，产品经理刚发了一版需求变更，你需要检查信号维度、更新参数、跑一遍 MIL 仿真、生成代码……这些操作你都会，但它们繁琐、重复、容易出错。
+
+**ASC 就是为了解决这个问题而生的。**
+
+它是一个命令行助手，你用自然语言告诉它你想做什么——"帮我检查这个模型的信号维度一致性"、"把这个子系统的采样时间改成 0.01"、"跑一下 MIL 仿真看看有没有报错"——它会理解你的意图，调用合适的工具，一步步帮你完成。
+
+ASC 不是一个通用的聊天机器人。它是专门为汽车 Simulink/Stateflow 工程设计的，它了解你的工作环境、你的工具链、你的项目结构。你可以把它理解为一个**懂 Simulink 的工程助手**，它通过 MCP 协议连接 MATLAB，通过 Skills 系统加载领域知识，通过 Memory 系统记住你的项目上下文。
+
+## 它能帮你做什么
+
+**日常建模辅助**：你描述需求，它帮你操作模型——添加 Block、连线、设置参数、检查一致性。不需要你记住 `set_param` 的语法，也不需要你手动打开每个子系统。
+
+**工程任务自动化**：批量修改参数、批量检查模型规范、批量生成报告——这些原本需要写 MATLAB 脚本的任务，现在用一句话就能启动。
+
+**知识沉淀与复用**：你定义的 Skills 会成为团队的标准作业程序。新人不需要从头学，ASC 会按照你定义的流程执行。
+
+**工具链整合**：通过 MCP 协议，ASC 能同时调用 MATLAB、Simulink、测试框架、CI/CD 工具。你不需要在多个窗口之间切换。
+
+## 整体架构
+
+ASC 的设计像一个**分层的工程团队**：你在最上层指挥，中间是项目经理（Agent）协调，底层是各种专业人员（工具、技能、外部服务）执行。
+
+```mermaid
+graph TB
+    subgraph 用户
+        TUI["终端 UI"] --- CLI["命令行"]
+    end
+
+    subgraph 引擎["执行引擎 — ASC 的大脑"]
+        Loop["对话循环"] --- Support["上下文 · 权限 · 提示词 · 子智能体"]
+    end
+
+    subgraph 能力
+        Tools["工具"] --- Skills["技能"] --- MCP["MCP"]
+    end
+
+    subgraph 存储
+        Memory["记忆"] --- Session["会话"]
+    end
+
+    subgraph 外部
+        LLM["AI 引擎"] --- MATLAB["MATLAB / Simulink"]
+    end
+
+    用户 --> 引擎
+    引擎 --> 能力
+    能力 --> 存储
+    能力 --> 外部
+```
+
+**四层架构**：
+
+| 层次 | 包含模块 | 职责 |
+|------|---------|------|
+| **用户层** | 终端 UI、命令行、斜杠命令 | 你和 ASC 的交互界面 |
+| **引擎层** | Agent、上下文管理、权限、子智能体、提示词 | ASC 的大脑：理解意图、调度执行、保障安全 |
+| **能力层** | 工具、技能、MCP | ASC 会做的事情：文件操作、工作流、外部调用 |
+| **存储层** | 记忆、会话、配置 | ASC 记住的东西：项目知识、对话历史、安全规则 |
+| **外部资源** | AI 引擎、MCP 服务器 | ASC 依赖的外部服务 |
+
+## 核心设计原则
+
+### 1. 你说意图，它做操作
+
+ASC 不只是聊天。它的核心价值是把你的工程意图变成实际操作。你说"检查信号维度一致性"，它会读取模型、分析端口、比对维度、生成报告——一整套操作自动完成，每一步都有明确的输入和输出。
+
+这就像你告诉一个经验丰富的同事"帮我看看这个模型有没有问题"，他会自己去翻模型、查参数、跑检查，最后给你一个结论。
+
+### 2. 安全第一，宁可多问
+
+ASC 对你的模型非常谨慎。任何可能修改文件的操作都会先问你确认，任何超出工作目录的访问都会被拦截，任何破坏性操作都会二次确认。
+
+这就像一个严谨的工程师——在修改你的模型之前，他会先备份，然后问你"确定要改吗？"。你可以在设置里调整安全级别，但默认是最安全的模式。
+
+### 3. 对话再长也不会"失忆"
+
+LLM 的记忆力有上限，对话太长就会"忘记"前面说的话。ASC 有 5 层压缩策略，自动管理对话内容：先把不常用的结果存到磁盘，再精简重复信息，最后在必要时生成摘要。你不会感觉到它在"整理"，但你会发现即使对话了很长时间，它依然记得关键信息。
+
+这就像一个会做会议纪要的助手——即使讨论了一整天，它也能抓住重点。
+
+### 4. 能力可以无限扩展
+
+ASC 的能力不是固定的。你可以通过两种方式扩展它：
+- **Skills**：写一个 Markdown 文件，定义"在什么情况下、该怎么做"。比如你可以写一个"模型规范检查"的 Skill，以后只要说"帮我检查规范"，ASC 就会按照你定义的流程执行。
+- **MCP**：连接任何支持 MCP 协议的工具服务器。MATLAB、自定义分析服务、测试框架——只要它支持 MCP，ASC 就能调用它。
+
+这就像给你的助手不断培训新技能——他的能力会越来越强。
+
+## 模块全景
+
+| 模块 | 用户视角 | 设计哲学 |
+|------|----------|----------|
+| **Agent** | 你的对话伙伴，负责理解你的话并调用合适的工具 | 循环推理：听→想→做→反馈→再听 |
+| **Tools** | ASC 会做的事情清单：读文件、改文件、跑命令、搜代码 | 每个工具都声明自己"能做什么"和"有什么风险" |
+| **Skills** | 标准作业程序：告诉 ASC 在特定场景下该怎么做 | 用 Markdown 写，比写代码更自然 |
+| **Memory** | 项目笔记本：ASC 记住你的项目信息，下次不用从头说起 | 只记稳定的、确认过的信息 |
+| **MCP** | 万能插头：连接 MATLAB 等外部工具与插件系统 | 即插即用，连接断了自动重连 |
+| **Context** | 工作台整理：自动管理对话内容，不让"记忆力"溢出 | 5 级压缩，从轻量收拾到彻底清场 |
+| **Prompt** | 岗位说明书：告诉 ASC "你是谁、该怎么做" | 不变的部分缓存，变化的部分实时更新 |
+| **Permissions** | 安全护栏：保护你的项目不被误操作 | 宁可多问一次，也不能偷偷改坏你的模型 |
+| **SubAgent** | 实习生系统：把任务分配给多个"助手"并行处理 | 每个助手只能做被授权的事情 |
+| **Session** | 工作日志：记录每次对话，支持暂停、恢复、历史查看 | 追加日志格式，数据安全不丢失 |
+| **UI** | 对话窗口：你在终端里和 ASC 交流的界面 | 实时看到它在想什么、做什么 |
+| **CLI** | 入口与快捷键：启动命令 + 对话中的斜杠命令 | 简单入口，丰富内部 |
+
+## 一次对话是怎么工作的
+
+当你在终端里输入一句话，ASC 会这样处理：
+
+```mermaid
+sequenceDiagram
+    participant U as 你
+    participant TUI as 终端界面
+    participant Agent as ASC 大脑
+    participant Ctx as 记忆管理
+    participant Perm as 安全检查
+    participant Tool as 工具执行
+    participant LLM as AI 引擎
+
+    U->>TUI: 输入你的需求
+    TUI->>Agent: 转发给 ASC
+
+    Agent->>Ctx: 检查对话是否需要整理
+    Ctx-->>Agent: 返回整理建议
+
+    Agent->>LLM: 把你的需求、对话历史、可用工具一起发给 AI
+    LLM-->>Agent: 返回响应（文字或操作指令）
+
+    alt AI 需要执行操作
+        Agent->>Perm: 检查这个操作是否安全
+        Perm-->>Agent: 允许 / 需要确认 / 拒绝
+
+        alt 需要你确认
+            Agent->>TUI: 弹出确认框
+            U->>TUI: 确认或拒绝
+            TUI->>Agent: 传递你的决定
+        end
+
+        Agent->>Tool: 执行操作
+        Tool-->>Agent: 返回执行结果
+
+        Agent->>LLM: 把结果发给 AI，请求下一步
+        LLM-->>Agent: 返回最终回答
+    end
+
+    Agent->>TUI: 显示结果给你
+```
+
+整个过程就像你和一个同事对话：你说需求，他想一想，可能需要查资料或操作工具，做完后告诉你结果。ASC 只是把这个过程自动化了。
+
+## 快速开始
+
+```bash
+# 安装
+pip install -e .
+
+# 初始化并启动交互会话
+asc setup
+
+# 在 ASC 会话内安装领域插件
+/plugins install simulink-agentic-toolkit
+```
+            </script>
+
+
+        </article>
+        </div><aside class="toc-panel">
+            <div class="toc-title">本页目录</div>
+            <div id="toc" class="toc-list"></div>
+        </aside>
+    </main>
+
+    <script src="../lang.js"></script>
+</body>
+</html>

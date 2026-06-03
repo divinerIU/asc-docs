@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Context — ASC Docs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+    <header class="top-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <a class="header-logo" href="../index.html"><div class="logo-icon">A</div><span>ASC Docs</span></a>
+                <nav class="header-nav">
+                    <a href="overview.html">Docs</a>
+                    <a href="agent.html" class="active">Modules</a>
+                    <a href="../developer.html">Dev</a>
+                </nav>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l3.04 3.04a.75.75 0 1 1-1.06 1.06l-3.04-3.04Z"/></svg>
+                    <span>Search docs...</span><kbd>⌘K</kbd>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <aside class="sidebar">
+        <div class="sidebar-section"><div class="sidebar-label">Getting Started</div>
+            <nav class="sidebar-nav">
+                <a href="overview.html">Overview</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Core Modules</div>
+            <nav class="sidebar-nav">
+                <a href="agent.html">Runtime</a>
+                <a href="tools.html">Tools</a>
+                <a href="skills.html">Skills</a>
+                <a href="memory.html">Memory</a>
+                <a href="mcp.html">Services</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Infrastructure</div>
+            <nav class="sidebar-nav">
+                <a href="context.html" class="active">Context</a>
+                <a href="prompt.html">Prompt</a>
+                <a href="permissions.html">Permissions</a>
+                <a href="subagent.html">SubAgent</a>
+                <a href="session.html">Session</a>
+                <a href="ui.html">UI</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Reference</div>
+            <nav class="sidebar-nav">
+                <a href="../developer.html">Developer Guide</a>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="main-content" id="main-content">
+        <div class="content-wrap">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a><span class="sep">/</span>
+            <a href="overview.html">Docs</a><span class="sep">/</span>
+            <a href="context.html">Context</a>
+        </div>
+        <article id="article">
+
+            <script type="text/markdown" id="md">
+# 上下文管理
+
+## 为什么需要管理上下文
+
+AI 的"记忆力"有上限——它一次能"看到"的内容是有限的。这就像你的工作台面积：放不下的东西就没法看到。
+
+ASC 的对话可能会涉及大量操作——读取多个文件、搜索代码、执行命令。每一步都会产生大量文本。如果不加管理，AI 的"工作台"很快就会被撑满，它就会"忘记"前面说过的话。
+
+上下文管理就是 ASC 的"桌面整理术"——自动收拾工作台，把不常用的东西收起来，给新任务腾出空间。
+
+## 五级整理策略
+
+ASC 有五级整理策略，从轻量到彻底：
+
+**第 1 级：大文件存磁盘**
+如果一个操作的结果太大（比如读取了一个很大的文件），ASC 会把完整结果存到磁盘上，只在对话里保留一个链接和摘要。这就像大附件不直接塞进邮件，而是发一个网盘链接。
+
+**第 2 级：清理旧结果**
+对话进行到一半时，ASC 会开始清理不常用的工具结果。比如你之前读过一个文件，后来又读了好几次，ASC 会只保留最新那次的结果。但最近 3 次操作的结果会保留——这些最可能还需要用。
+
+**第 3 级：空闲时整理**
+当你不说话超过 1 小时，ASC 会利用这段时间自己收拾工作台——清理旧的工具结果，为后续对话腾出空间。就像你午休时，助手帮你整理桌面。
+
+**第 4 级：折叠旧对话**
+当工作台快满了（超过 81%），ASC 会把较早的对话压缩成一份摘要："用户之前想做 XX，调用了 XX 工具，操作了 XX 文件"。保留最近 20 条对话。
+
+**第 5 级：AI 生成总结**
+最后手段（超过 93%）——ASC 会让 AI 自己写一份"会议纪要"，总结之前的对话内容。保留最近 6 条对话。这就像让 AI 写一份续接摘要，确保对话可以继续。
+
+## 渐进式整理：每一级只在需要时触发
+
+这五级不是同时生效的——**每一级只在前一级不够用时才触发**。
+
+就像你整理房间：先收拾桌面（第 1 级），不够就把不常用的东西收进抽屉（第 2 级），还不够就把旧东西打包放储藏室（第 3 级），最后实在没地方了就扔掉一些（第 4、5 级）。
+
+这种渐进式设计保证了：
+- 轻量整理不影响对话质量
+- 重度整理只在万不得已时才使用
+- 关键信息始终被保留
+
+## 中英文混合的特殊处理
+
+中日韩字符通常比英文占用更多 token。ASC 的上下文管理器会特殊处理中文内容，确保 token 估算更准确。
+
+这就像计算邮件大小时，中文附件比英文附件"更重"——需要特殊处理。
+
+## 查看上下文状态
+
+你可以用 `/context` 命令查看当前对话的上下文状态——用了多少、还剩多少、是否需要整理。这就像查看手机存储空间——看看还剩多少容量。
+
+## 设计哲学
+
+### 不是等满了再收拾，而是提前整理
+
+ASC 的上下文管理是**主动的**，不是被动的。它不会等到上下文满了才开始整理——而是在对话过程中就开始轻量整理。
+
+这就像你不会等到桌面完全乱了才收拾——你会边工作边整理，保持桌面始终可用。
+
+### 信息的价值决定保留策略
+
+不是所有信息都同等重要。最近的操作结果最可能还需要用，所以保留最久。很久之前的操作结果大概率不再需要，所以可以清理。
+
+这就像你的工作台：当前在用的工具放在手边，不常用的收进抽屉。
+
+### 关键信息永远不会丢失
+
+即使在最重度的压缩（第 5 级），ASC 也会保留关键信息：用户想做什么、操作了哪些文件、遇到了什么错误、当前进展如何。这些信息会写进 AI 生成的总结里。
+
+这就像会议纪要——虽然不会记录每句话，但关键决策和行动项一定会记下来。
+            </script>
+
+
+        </article>
+        </div><aside class="toc-panel">
+            <div class="toc-title">本页目录</div>
+            <div id="toc" class="toc-list"></div>
+        </aside>
+    </main>
+
+    <script src="../lang.js"></script>
+</body>
+</html>

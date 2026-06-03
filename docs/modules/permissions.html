@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Permissions — ASC Docs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+    <header class="top-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <a class="header-logo" href="../index.html"><div class="logo-icon">A</div><span>ASC Docs</span></a>
+                <nav class="header-nav">
+                    <a href="overview.html">Docs</a>
+                    <a href="agent.html" class="active">Modules</a>
+                    <a href="../developer.html">Dev</a>
+                </nav>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l3.04 3.04a.75.75 0 1 1-1.06 1.06l-3.04-3.04Z"/></svg>
+                    <span>Search docs...</span><kbd>⌘K</kbd>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <aside class="sidebar">
+        <div class="sidebar-section"><div class="sidebar-label">Getting Started</div>
+            <nav class="sidebar-nav">
+                <a href="overview.html">Overview</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Core Modules</div>
+            <nav class="sidebar-nav">
+                <a href="agent.html">Runtime</a>
+                <a href="tools.html">Tools</a>
+                <a href="skills.html">Skills</a>
+                <a href="memory.html">Memory</a>
+                <a href="mcp.html">Services</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Infrastructure</div>
+            <nav class="sidebar-nav">
+                <a href="context.html">Context</a>
+                <a href="prompt.html">Prompt</a>
+                <a href="permissions.html" class="active">Permissions</a>
+                <a href="subagent.html">SubAgent</a>
+                <a href="session.html">Session</a>
+                <a href="ui.html">UI</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Reference</div>
+            <nav class="sidebar-nav">
+                <a href="../developer.html">Developer Guide</a>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="main-content" id="main-content">
+        <div class="content-wrap">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a><span class="sep">/</span>
+            <a href="overview.html">Docs</a><span class="sep">/</span>
+            <a href="permissions.html">Permissions</a>
+        </div>
+        <article id="article">
+
+            <script type="text/markdown" id="md">
+# 权限与安全
+
+## 为什么需要权限系统
+
+ASC 是一个强大的工具——它能读文件、改文件、跑命令、甚至调用 MATLAB。但强大也意味着风险：如果它不小心删了你的模型文件呢？如果它执行了一条不该执行的 Shell 命令呢？
+
+权限系统就是 ASC 的**安全护栏**。它的职责很简单：**在 ASC 做任何事情之前，先确认这件事是安全的**。
+
+你可以把它想象成汽车的安全系统：
+- **安全带**（默认模式）：最基本的安全保护，每次操作都要确认
+- **ESP**（工作区边界）：防止"打滑"——ASC 不会跑到你的工作目录之外
+- **ABS**（破坏性操作双重确认）：防止"急刹失控"——危险操作一定要二次确认
+
+## 三种安全级别
+
+ASC 提供三种安全级别，你可以根据场景切换：
+
+| 级别 | 比喻 | 自动允许 | 需要你确认 | 适合场景 |
+|------|------|----------|-----------|---------|
+| **默认模式** | 新手司机 | 只有"看"的操作 | 所有"改"的操作 | 日常使用，最安全 |
+| **编辑放行** | 老司机 | 看 + 编辑文件 | 破坏性操作 | 频繁编辑时减少确认 |
+| **完全放行** | 自动驾驶 | 几乎全部 | 仅破坏性操作 | 自动化场景 |
+
+**默认模式**是最安全的——ASC 每次要修改文件或执行命令，都会先问你"确定吗？"。就像一个谨慎的实习生，做什么都要先跟你说一声。
+
+**编辑放行**适合你信任 ASC 的编辑能力、但还是想对危险操作把关的场景。就像一个资深同事，编辑文件你放心，但删文件还是会确认。
+
+**完全放行**适合自动化场景——比如在 CI/CD 流水线里跑 ASC，没人盯着，需要它自己判断。但即使在这个模式下，破坏性操作（删除文件、force push）仍然需要确认。
+
+## 六层安全检查
+
+每次 ASC 要执行一个操作，都会经过六层检查。任何一层说"不行"，操作就不会执行：
+
+**第 1 层：工具本身安全吗？**
+每个工具都带着一张"身份证"，上面写着"我是只读的"或"我会修改文件"或"我是破坏性的"。ASC 先看这张身份证，如果是"只读"的工具（比如读文件），直接放行。
+
+**第 2 层：你的设置允许吗？**
+你可以在配置文件里写规则，比如"禁止执行 rm 命令"或"允许所有文件读取"。ASC 会先查你的规则。你的规则优先级最高——如果你说"禁止"，ASC 绝对不会执行。
+
+**第 3 层：当前模式允许吗？**
+如果前两层都没匹配到规则，ASC 看当前是什么模式。默认模式下，修改操作需要确认；编辑放行模式下，编辑操作自动通过。
+
+**第 4 层：在工作目录内吗？**
+ASC 不会访问你工作目录之外的文件。这就像一个访客权限——只能在指定区域内活动，不能到处乱跑。
+
+**第 5 层：Shell 命令风险高吗？**
+如果是执行 Shell 命令，ASC 会分析命令的风险等级。`ls` 是安全的，`rm -rf` 是危险的。详见 [Tools](tools.html)。
+
+**第 6 层：最终确认**
+串联所有检查，处理特殊情况。如果你之前确认过同一个操作，这次就不重复问了（会话级缓存）。但如果是破坏性操作，即使你之前确认过，ASC 还是会再问一次。
+
+## 你可以自定义安全规则
+
+ASC 的安全规则不是固定的——你可以根据自己的需求定制。规则写在配置文件里，分两种级别：
+
+**全局规则**（对所有项目生效）：放在你的用户目录下
+**项目规则**（只对当前项目生效）：放在项目目录下
+
+规则有三种类型：
+- **禁止**：绝对不允许执行（最高优先级）
+- **允许**：自动放行
+- **默认**：按当前模式决定（比如需要确认）
+
+这就像公司的安全制度：有些事情绝对禁止（删除生产数据），有些事情自动放行（读取文档），有些事情需要审批（修改配置）。
+
+## 审计日志：所有操作都有记录
+
+ASC 会记录每一次权限决策——允许了什么、拒绝了什么、为什么允许、为什么拒绝。这些记录保存在日志文件里，你可以随时查看。
+
+这就像工厂的监控录像——如果出了问题，你可以回溯查看"当时 ASC 做了什么、为什么这么做"。
+
+对于团队来说，这意味着安全负责人可以审计 ASC 的所有操作，确保没有越权行为。
+
+## 设计哲学
+
+### 安全是默认行为，不是可选功能
+
+ASC 不提供"关闭安全检查"的选项。即使在最宽松的模式下，破坏性操作仍然需要确认。这就像汽车的安全气囊——你不能关掉它，因为它必须在碰撞时自动弹出。
+
+### 宁可多问一次，也不能偷偷改坏你的模型
+
+ASC 的设计哲学是**保守的**：如果不确定是否安全，就问你。这可能会多弹几次确认框，但它保证了你的项目不会被意外修改。
+
+### 你的规则优先级最高
+
+无论 ASC 内部有什么逻辑，你在配置文件里写的规则都是最高优先级。你说"禁止"，ASC 绝对不会执行。你说"允许"，ASC 直接放行。你有完全的控制权。
+            </script>
+
+
+        </article>
+        </div><aside class="toc-panel">
+            <div class="toc-title">本页目录</div>
+            <div id="toc" class="toc-list"></div>
+        </aside>
+    </main>
+
+    <script src="../lang.js"></script>
+</body>
+</html>

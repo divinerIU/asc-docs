@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>SubAgent — ASC Docs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+    <header class="top-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <a class="header-logo" href="../index.html"><div class="logo-icon">A</div><span>ASC Docs</span></a>
+                <nav class="header-nav">
+                    <a href="overview.html">Docs</a>
+                    <a href="agent.html" class="active">Modules</a>
+                    <a href="../developer.html">Dev</a>
+                </nav>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l3.04 3.04a.75.75 0 1 1-1.06 1.06l-3.04-3.04Z"/></svg>
+                    <span>Search docs...</span><kbd>⌘K</kbd>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <aside class="sidebar">
+        <div class="sidebar-section"><div class="sidebar-label">Getting Started</div>
+            <nav class="sidebar-nav">
+                <a href="overview.html">Overview</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Core Modules</div>
+            <nav class="sidebar-nav">
+                <a href="agent.html">Runtime</a>
+                <a href="tools.html">Tools</a>
+                <a href="skills.html">Skills</a>
+                <a href="memory.html">Memory</a>
+                <a href="mcp.html">Services</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Infrastructure</div>
+            <nav class="sidebar-nav">
+                <a href="context.html">Context</a>
+                <a href="prompt.html">Prompt</a>
+                <a href="permissions.html">Permissions</a>
+                <a href="subagent.html" class="active">SubAgent</a>
+                <a href="ui.html">UI</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Reference</div>
+            <nav class="sidebar-nav">
+                <a href="../developer.html">Developer Guide</a>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="main-content" id="main-content">
+        <div class="content-wrap">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a><span class="sep">/</span>
+            <a href="overview.html">Docs</a><span class="sep">/</span>
+            <a href="subagent.html">SubAgent</a>
+                <a href="session.html">Session</a>
+        </div>
+        <article id="article">
+
+            <script type="text/markdown" id="md">
+# 多智能体系统
+
+## 什么是子智能体
+
+子智能体就是 ASC 的**实习生系统**。
+
+当项目经理（主智能体）接到一个大任务时，他不会自己做所有事情——他会把任务分配给不同的团队成员。有人负责搜索资料，有人负责分析数据，有人负责写报告。
+
+ASC 的子智能体也是一样：主智能体可以把任务分配给"实习生"（子智能体），让它们并行处理，最后汇总结果。
+
+## 为什么需要子智能体
+
+**上下文保护**：主智能体的"记忆力"是有限的。如果让它自己搜索大量文件、分析大量代码，它的上下文很快就会被撑满。把搜索和分析工作分配给子智能体，主智能体的上下文就能保持干净。
+
+**并行处理**：多个子智能体可以同时工作。就像一个项目经理同时安排三个人做不同的事情，总时间比一个人串行做快得多。
+
+**能力限制**：子智能体只能做被授权的事情。你给它"搜索"的权限，它就只能搜索，不能修改。这保证了安全。
+
+## 子智能体怎么工作
+
+```mermaid
+graph TB
+    Main["主智能体<br/>分析任务，决定分配"] --> Delegate["分配子任务"]
+    Delegate --> Worker1["实习生 A<br/>负责搜索"]
+    Delegate --> Worker2["实习生 B<br/>负责分析"]
+    Worker1 --> Result["汇总结果"]
+    Worker2 --> Result
+    style Main fill:#e8f4fd,stroke:#1a73e8
+```
+
+**分配任务**：主智能体分析任务后，决定"这个子任务需要什么能力"，然后选择要授权的技能。
+
+**授权技能**：主智能体把特定的技能"授权"给子智能体。比如授权"代码搜索"技能，子智能体就能搜索代码；授权"文件分析"技能，子智能体就能分析文件。
+
+**独立执行**：子智能体有自己的上下文窗口和工具集，独立完成任务。它不会干扰主智能体的工作。
+
+**返回结果**：子智能体完成后，把结果返回给主智能体。主智能体汇总所有结果，继续处理。
+
+## 安全约束
+
+### 不能无限递归
+
+子智能体不能再派生子智能体。这就像实习生不能再招实习生——防止任务被无限细分，导致失控。
+
+### 工具过滤
+
+子智能体的工具列表会被过滤——危险的工具（比如删除文件、执行命令）会被移除。只保留安全的工具（比如读文件、搜索）。
+
+这就像给实习生分配工作时，不会把管理员权限给他们——只给他们完成任务所需的最低权限。
+
+### 能力精确控制
+
+通过技能授权，主智能体可以精确控制子智能体能做什么：
+- 只授权"搜索"技能 → 子智能体只能搜索，不能修改
+- 只授权"分析"技能 → 子智能体只能分析，不能操作
+- 授权"代码审查"技能 → 子智能体按照代码审查的流程工作
+
+## 设计哲学
+
+### 分工协作，而不是一个人扛所有
+
+大任务需要分工。主智能体负责决策和协调，子智能体负责执行。这就像一个高效的团队——项目经理不写代码，开发工程师不做项目管理，各司其职。
+
+### 能力最小化原则
+
+子智能体只获得完成任务所需的最少能力。不需要的能力不授权。这遵循了安全领域的"最小权限原则"——只给必要的权限，不多给。
+
+### 独立上下文，互不干扰
+
+每个子智能体有自己的上下文窗口，不会占用主智能体的空间。就像每个实习生有自己的工作台——他们做自己的事情，不会把东西放到你的桌子上。
+            </script>
+
+
+        </article>
+        </div><aside class="toc-panel">
+            <div class="toc-title">本页目录</div>
+            <div id="toc" class="toc-list"></div>
+        </aside>
+    </main>
+
+    <script src="../lang.js"></script>
+</body>
+</html>

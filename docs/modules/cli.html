@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>CLI — ASC Docs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+    <header class="top-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <a class="header-logo" href="../index.html"><div class="logo-icon">A</div><span>ASC Docs</span></a>
+                <nav class="header-nav">
+                    <a href="overview.html">Docs</a>
+                    <a href="agent.html" class="active">Modules</a>
+                    <a href="../developer.html">Dev</a>
+                </nav>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l3.04 3.04a.75.75 0 1 1-1.06 1.06l-3.04-3.04Z"/></svg>
+                    <span>Search docs...</span><kbd>⌘K</kbd>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <aside class="sidebar">
+        <div class="sidebar-section"><div class="sidebar-label">Getting Started</div>
+            <nav class="sidebar-nav">
+                <a href="overview.html">Overview</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Core Modules</div>
+            <nav class="sidebar-nav">
+                <a href="agent.html">Runtime</a>
+                <a href="tools.html">Tools</a>
+                <a href="skills.html">Skills</a>
+                <a href="memory.html">Memory</a>
+                <a href="mcp.html">Services</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Infrastructure</div>
+            <nav class="sidebar-nav">
+                <a href="context.html">Context</a>
+                <a href="prompt.html">Prompt</a>
+                <a href="permissions.html">Permissions</a>
+                <a href="subagent.html">SubAgent</a>
+                <a href="session.html">Session</a>
+                <a href="ui.html">UI</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Reference</div>
+            <nav class="sidebar-nav">
+                <a href="../developer.html">Developer Guide</a>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="main-content" id="main-content">
+        <div class="content-wrap">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a><span class="sep">/</span>
+            <a href="overview.html">Docs</a><span class="sep">/</span>
+            <a href="cli.html">CLI</a>
+        </div>
+        <article id="article">
+
+            <script type="text/markdown" id="md">
+# 命令行与斜杠命令
+
+## 两种交互方式
+
+ASC 有两种和你交流的方式：
+
+**启动命令**：在终端里输入 `asc setup`，启动 ASC 的对话界面。这是你和 ASC 的"入口"。
+
+**斜杠命令**：在对话过程中，输入 `/` 开头的命令，执行快捷操作。这就像在聊天软件里输入 `/` 看表情包一样——快速触发特定功能。
+
+## 启动命令
+
+只有一个启动命令：`asc setup`
+
+输入这个命令，ASC 就会启动，你进入对话界面。就这么简单。
+
+## 斜杠命令：对话中的快捷操作
+
+在对话过程中，你可以用 `/` 前缀执行各种快捷操作：
+
+| 命令 | 作用 | 使用场景 |
+|------|------|---------|
+| `/context` | 查看上下文状态 | 看看对话还剩多少"空间" |
+| `/compact` | 手动整理对话 | 对话太长了，让它整理一下 |
+| `/clear` | 清空对话 | 重新开始 |
+| `/skills` | 查看可用技能 | 看看 ASC 会什么 |
+| `/mcp` | 查看 MCP 连接状态 | 看看外部工具是否连通 |
+| `/sessions` | 查看所有对话 | 看看之前的对话列表 |
+| `/resume` | 恢复之前的对话 | 继续上次没做完的事情 |
+| `/new` | 开始新对话 | 重新开始 |
+| `/summary` | 生成对话总结 | 让 AI 写一份会议纪要 |
+| `/todo` | 查看待办事项 | 看看还有什么没做 |
+| `/help` | 查看帮助 | 不知道用什么命令时 |
+| `/exit` | 退出 | 结束对话 |
+| `/plugins` | 管理插件 | 安装或查看插件 |
+
+## 打错了也不会报错
+
+如果你输入了一个不存在的命令，ASC 不会报错——它会尝试把它当作技能名来执行。比如你输入 `/check-model`，ASC 会去找一个叫 `check-model` 的技能。如果找不到，它会显示帮助信息。
+
+这就像在聊天软件里输入一个不存在的表情——它不会崩溃，只是显示"没有这个表情"。
+
+## 文件引用：快速分享文件内容
+
+在对话中，你可以用 `#文件路径` 把文件内容直接加入对话。比如：
+
+```
+帮我看看这个模型的配置 #./config/model_params.json
+```
+
+ASC 会自动读取文件内容，加入到对话上下文中。这比手动打开文件、复制、粘贴要方便得多。
+
+## 设计哲学
+
+### 简单入口，丰富内部
+
+启动命令只有一个：`asc setup`。不需要记复杂的命令行参数。所有丰富的功能都在对话界面里通过斜杠命令实现。
+
+### 技能就是命令
+
+你定义的技能会自动成为可用的斜杠命令。这意味着你可以通过写技能文件来"扩展" ASC 的命令——不需要改代码，不需要编译。
+
+### 容错设计
+
+输入错误不会导致系统崩溃。ASC 会尽量理解你的意图，给出友好的提示。
+            </script>
+
+
+        </article>
+        </div><aside class="toc-panel">
+            <div class="toc-title">本页目录</div>
+            <div id="toc" class="toc-list"></div>
+        </aside>
+    </main>
+
+    <script src="../lang.js"></script>
+</body>
+</html>

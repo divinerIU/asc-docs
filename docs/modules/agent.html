@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Agent — ASC Docs</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+
+<body>
+    <header class="top-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <a class="header-logo" href="../index.html">
+                    <div class="logo-icon">A</div><span>ASC Docs</span>
+                </a>
+                <nav class="header-nav">
+                    <a href="overview.html">Docs</a>
+                    <a href="agent.html" class="active">Modules</a>
+                    <a href="../developer.html">Dev</a>
+                </nav>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <svg viewBox="0 0 16 16" fill="currentColor">
+                        <path
+                            d="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l3.04 3.04a.75.75 0 1 1-1.06 1.06l-3.04-3.04Z" />
+                    </svg>
+                    <span>Search docs...</span><kbd>⌘K</kbd>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <aside class="sidebar">
+        <div class="sidebar-section">
+            <div class="sidebar-label">Getting Started</div>
+            <nav class="sidebar-nav">
+                <a href="overview.html">Overview</a>
+            </nav>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-label">Core Modules</div>
+            <nav class="sidebar-nav">
+                <a href="agent.html" class="active">Runtime</a>
+                <a href="tools.html">Tools</a>
+                <a href="skills.html">Skills</a>
+                <a href="memory.html">Memory</a>
+                <a href="mcp.html">Services</a>
+            </nav>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-label">Infrastructure</div>
+            <nav class="sidebar-nav">
+                <a href="context.html">Context</a>
+                <a href="prompt.html">Prompt</a>
+                <a href="permissions.html">Permissions</a>
+                <a href="subagent.html">SubAgent</a>
+                <a href="session.html">Session</a>
+                <a href="ui.html">UI</a>
+            </nav>
+        </div>
+        <div class="sidebar-section">
+            <div class="sidebar-label">Reference</div>
+            <nav class="sidebar-nav">
+                <a href="../developer.html">Developer Guide</a>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="main-content" id="main-content">
+        <div class="content-wrap">
+            <div class="breadcrumb">
+                <a href="../index.html">Home</a><span class="sep">/</span>
+                <a href="overview.html">Docs</a><span class="sep">/</span>
+                <a href="agent.html">Runtime</a>
+            </div>
+            <article id="article">
+
+                <script type="text/markdown" id="md">
+# 执行引擎
+
+## 模块定位
+
+执行引擎是 ASC 的核心运行时引擎，由 **QueryEngine** 和 **QueryLoop** 两层组成。QueryEngine 负责全局调度（会话初始化、预算控制、错误恢复），QueryLoop 负责单轮推理（LLM 调用、工具执行、结果反馈）。
+
+```mermaid
+graph LR
+    Input["用户输入"] --> QE
+
+    subgraph QE["QueryEngine — 全局调度"]
+        direction TB
+        Init["初始化 + 预算"] --> Exec["调用 Loop"]
+        Exec --> Eval["评估 + 决策"]
+        Eval -->|未完成| Exec
+    end
+
+    Exec --> QL
+
+    subgraph QL["QueryLoop — 单轮推理"]
+        direction TB
+        Stream["流式调用 LLM"] --> Parse["解析响应"]
+        Parse -->|有 tool_use| ExecTool["执行工具"]
+        ExecTool --> Stream
+    end
+
+    Stream --> LLM["LLM API"]
+    ExecTool --> Tools["工具系统"]
+    Eval -->|完成| Output["最终响应"]
+
+    style QE fill:#e8f4fd,stroke:#1a73e8
+    style QL fill:#fff3e0,stroke:#e65100
+```
+
+## QueryEngine：全局调度
+
+QueryEngine 是外层控制器，每次用户输入触发一次 `QueryEngine.run()`，负责整个对话任务的生命周期：
+
+1. **初始化** — 加载 session（system prompt / tools / 历史），设定运行预算（max turns / token / cost / timeout）
+2. **配置** — 选择模型与参数（model / temperature / stream 策略），组装上下文（裁剪 / 摘要 / 滑窗）
+3. **执行** — 调用 QueryLoop，获取本轮结果（text / tool_result / usage）
+4. **容错** — 错误分类与恢复（退避 / 重试 / 降级模型），防止重试风暴
+5. **决策** — 预算评估（token / cost / 轮次），判断终止条件（无 tool_use / stop_reason / 达到目标）
+6. **收尾** — 更新会话状态（追加历史、日志记录），输出最终结果
+
+关键设计：预算约束在执行前设定，错误恢复在执行中生效，终止判断在执行后进行——形成"约束 → 执行 → 评估"的闭环。
+
+## QueryLoop：单轮推理
+
+QueryLoop 是内层执行器，负责一次完整的 LLM 调用 + 工具执行 cycle。每次 QueryEngine 调用 `QueryLoop.run()`：
+
+1. **组装上下文** — 压缩 messages[] 至可发送窗口
+2. **流式调用** — stream: true 请求 LLM API，解析返回的 content 块（文本 + tool_use 列表）
+3. **错误恢复** — 网络错误时分类、退避、重试，用户无感或温和提示
+4. **工具执行** — 并行/串行执行 tool_use，经权限检查后返回 tool_result
+5. **预算检查** — 估算 token / 费用 / 轮次，决定 continue 或 break
+6. **历史更新** — 把工具结果追加进 messages[]，进入下一轮或返回最终结果
+
+关键设计：工具执行和 LLM 调用在同一个循环内交替进行，直到 LLM 不再请求工具调用为止。
+
+## 双引擎支持
+
+执行引擎同时支持 Anthropic 和 OpenAI 两种 LLM 后端，通过 QueryLoop 的子类实现（AnthropicQueryLoop / OpenAIQueryLoop），两者功能对等：
+
+| 能力 | Anthropic（Claude） | OpenAI（GPT） |
+|------|---------------------|---------------|
+| **扩展思考** | Extended Thinking 模式 | Thinking 模式 + Reasoning Effort 控制 |
+| **Prompt Caching** | 原生支持，缓存静态前缀 | 自动缓存，按 cached_tokens 计费 |
+| **流式输出** | 支持 | 支持 |
+| **工具调用** | 原生 Tool Use | Function Calling |
+| **私有化部署** | — | 支持任何 OpenAI API 兼容的服务 |
+
+两种后端共享同一套工具链、权限系统和会话管理，切换引擎不影响工作流。
+
+## 事件系统
+
+执行引擎在执行过程中通过 StreamEvent 机制向 UI 层报告状态变化：
+
+| 事件 | 触发时机 | 说明 |
+|------|----------|------|
+| `on_tool_call` | 工具调用发起前 | 携带工具名和参数，UI 显示执行进度 |
+| `on_tool_result` | 工具执行完成后 | 携带执行结果，UI 显示结果摘要 |
+| `on_response` | LLM 响应完成时 | 流式输出文字回复 |
+| `on_error` | 发生错误时 | 携带错误分类和恢复建议 |
+
+## 资源管理
+
+执行引擎对每次会话施加三重资源限制：
+
+| 资源 | 控制方式 | 目的 |
+|------|----------|------|
+| **Token 预算** | 跟踪输入 + 输出 token 数 | 防止超出模型上下文窗口 |
+| **成本控制** | 基于 token 单价累计费用 | 防止意外高额 API 费用 |
+| **最大轮次** | 限制单次任务的工具调用次数 | 防止无限循环 |
+
+当资源接近上限时，执行引擎会触发上下文压缩或主动终止任务。
+
+## 权限与安全
+
+执行引擎每次调用工具前，都会经过多层安全检查（详见 [Permissions](permissions.html)）：
+
+1. 工具元数据检查 — 判断操作类型（只读 / 写入 / 破坏性）
+2. 配置规则匹配 — 检查用户自定义的 allow / deny 规则
+3. 权限模式回退 — 根据当前模式决定默认行为
+4. 用户确认 — 危险操作需要明确授权
+
+## 设计哲学
+
+### 两层分离：调度与执行解耦
+
+QueryEngine 负责"做什么"（全局调度、预算控制、错误恢复），QueryLoop 负责"怎么做"（LLM 调用、工具执行、结果反馈）。两层职责清晰，互不侵入。
+
+### 安全内建，而非外挂
+
+权限检查不是可选的附加层，而是 QueryLoop 执行管线的内建环节（步骤 5）。每次工具调用都必须经过完整的决策链。
+
+### 能力组合，而非功能堆砌
+
+执行引擎不直接实现任何领域功能。它通过 Skills 注入领域知识，通过 Tools 获得执行能力，通过 MCP 连接外部服务。新增领域支持只需添加对应的 Skills 和 Tools，执行引擎无需修改。
+            </script>
+
+
+            </article>
+        </div>
+        <aside class="toc-panel">
+            <div class="toc-title">本页目录</div>
+            <div id="toc" class="toc-list"></div>
+        </aside>
+    </main>
+
+    <script src="../lang.js"></script>
+</body>
+
+</html>

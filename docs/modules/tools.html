@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Tools — ASC Docs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+    <header class="top-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <a class="header-logo" href="../index.html"><div class="logo-icon">A</div><span>ASC Docs</span></a>
+                <nav class="header-nav">
+                    <a href="overview.html">Docs</a>
+                    <a href="agent.html" class="active">Modules</a>
+                    <a href="../developer.html">Dev</a>
+                </nav>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l3.04 3.04a.75.75 0 1 1-1.06 1.06l-3.04-3.04Z"/></svg>
+                    <span>Search docs...</span><kbd>⌘K</kbd>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <aside class="sidebar">
+        <div class="sidebar-section"><div class="sidebar-label">Getting Started</div>
+            <nav class="sidebar-nav">
+                <a href="overview.html">Overview</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Core Modules</div>
+            <nav class="sidebar-nav">
+                <a href="agent.html">Runtime</a>
+                <a href="tools.html" class="active">Tools</a>
+                <a href="skills.html">Skills</a>
+                <a href="memory.html">Memory</a>
+                <a href="mcp.html">Services</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Infrastructure</div>
+            <nav class="sidebar-nav">
+                <a href="context.html">Context</a>
+                <a href="prompt.html">Prompt</a>
+                <a href="permissions.html">Permissions</a>
+                <a href="subagent.html">SubAgent</a>
+                <a href="session.html">Session</a>
+                <a href="ui.html">UI</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Reference</div>
+            <nav class="sidebar-nav">
+                <a href="../developer.html">Developer Guide</a>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="main-content" id="main-content">
+        <div class="content-wrap">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a><span class="sep">/</span>
+            <a href="overview.html">Docs</a><span class="sep">/</span>
+            <a href="tools.html">Tools</a>
+        </div>
+        <article id="article">
+
+            <script type="text/markdown" id="md">
+# 工具系统
+
+## 工具是什么
+
+工具就是 **ASC 会做的事情**。
+
+当你和同事对话时，你说"帮我看看这个文件"，他会打开文件去看。"看文件"就是他会做的一件事。ASC 的工具也一样——"读取文件"是一个工具，"编辑文件"是一个工具，"运行命令"是一个工具。
+
+ASC 内置了 18 个工具，覆盖了日常工程操作：
+
+- **文件操作**：读文件、写文件、编辑文件、列目录
+- **搜索与命令**：搜索代码内容、执行 Shell 命令
+- **记忆管理**：读取、写入、更新项目记忆
+- **任务管理**：创建、查看、更新待办事项
+- **外部集成**：调用 MCP 服务器、启动子智能体
+
+这些工具就像一个工程师的"基本功"——读代码、改代码、搜代码、跑命令，ASC 都会。
+
+## 每个工具都有"技能证书"
+
+每个工具都带着一张"证书"，告诉系统自己能做什么、有什么风险：
+
+| 证书信息 | 含义 | 类比 |
+|----------|------|------|
+| 只读 | 只看不动 | 像翻阅文档，不会改任何东西 |
+| 写工作区 | 会修改文件 | 像编辑文档，会改变内容 |
+| 破坏性 | 会删除或覆盖 | 像碎纸机，操作不可逆 |
+| 并发安全 | 多个操作同时做没问题 | 像多人同时读同一份文档 |
+
+ASC 在执行任何工具之前，都会先看这张"证书"。如果证书上写着"破坏性"，ASC 一定会先问你"确定要执行吗？"。这就像一个严谨的工程师——在做不可逆操作之前，一定会先确认。
+
+## 工具从哪里来
+
+ASC 的工具来自三个渠道：
+
+```mermaid
+graph LR
+    BuiltIn["内置<br/>18 个"] --> Registry["工具注册表"]
+    MCP["MCP 服务器<br/>外部工具"] --> Registry
+    Skill["Skill 定义<br/>自定义能力"] --> Registry
+    Registry --> LLM["注册为 LLM 可调用的工具列表"]
+    style Registry fill:#e8f4fd,stroke:#1a73e8
+```
+
+**内置工具**是 ASC 自带的，开箱即用。**MCP 工具**来自你连接的外部服务器（比如 MATLAB）。**Skill 工具**来自你定义的技能文件。
+
+这就像一个团队：有人是全职员工（内置），有人是外包人员（MCP），有人是按需顾问（Skill）。他们都能做事，但来源不同。
+
+## 执行流程：层层安全检查
+
+每次 ASC 要执行一个操作，都会经过一套标准化的流程。你可以把它想象成一个**安全检查站**：
+
+```mermaid
+graph LR
+    Input["工具调用请求"] --> Validate["参数校验"]
+    Validate --> Permission["权限检查"]
+    Permission --> Concurrency["并发控制"]
+    Concurrency --> PreCheck["前置条件"]
+    PreCheck --> Execute["执行"]
+    Execute --> Spill["溢出处理"]
+    Spill --> Output["返回结果"]
+    style Execute fill:#fff3e0,stroke:#e65100
+    style Permission fill:#fce4ec,stroke:#c62828
+```
+
+**第 1 关：参数检查** — 就像填表单，必填项不能空，格式要对。
+
+**第 2 关：权限检查** — 就像门禁卡，不同级别能进不同区域。详见 [Permissions](permissions.html)。
+
+**第 3 关：并发控制** — 就像文件锁，两个人不能同时改同一个文件。ASC 会自动排队，等前一个操作完成再执行下一个。
+
+**第 4 关：前置条件** — 就像"先读再改"，ASC 不会让你编辑一个你从没看过的文件。这避免了"盲改"带来的风险。
+
+**第 5 关：结果溢出** — 如果操作结果太大（超过 50,000 字符），ASC 会自动存到磁盘上，只给你一个引用。这就像大文件不会直接塞进邮件，而是给你一个下载链接。
+
+## Shell 命令：最灵活也最危险
+
+`run_shell` 是 ASC 最强大的工具——它能执行任何 Shell 命令。但强大也意味着危险，所以 ASC 对 Shell 命令有**风险分级**：
+
+| 风险等级 | 交通灯 | 例子 | ASC 的处理 |
+|---------|--------|------|-----------|
+| 普通命令 | 🟢 绿灯 | `ls`、`cat`、`pwd` | 自动放行 |
+| 写入操作 | 🟡 黄灯 | `echo > file`、`mkdir` | 根据模式决定 |
+| 复合命令 | 🟡 黄灯 | `cmd1 && cmd2` | 需要审查 |
+| 复杂结构 | 🟡 黄灯 | `cat << EOF` | 需要审查 |
+| 破坏性操作 | 🔴 红灯 | `rm -rf`、`git push` | 必须二次确认 |
+
+这就像交通规则：绿灯通行、黄灯注意、红灯停车。ASC 不会偷偷执行红灯操作——它一定会先拦住你，问"你确定要这么做吗？"。
+
+## 为什么这样设计
+
+### 工具自描述，而不是靠猜
+
+每个工具都明确声明自己"能做什么"和"有什么风险"。ASC 不需要读工具的源代码来判断它是否安全——看证书就够了。
+
+这就像你不需要打开引擎盖才能判断一辆车能不能开——看仪表盘就够了。
+
+### 安全检查是流水线，不是可选的
+
+每次操作都必须过五关，没有"跳过检查"的选项。这就像工厂的质量检测——每个产品都要过检，不能因为"这批货应该没问题"就跳过。
+
+### 结果溢出自动处理
+
+你不需要担心"结果太大怎么办"——ASC 会自动处理。这就像你不需要担心"文件太大怎么发邮件"——系统会自动给你一个下载链接。
+            </script>
+
+
+        </article>
+        </div><aside class="toc-panel">
+            <div class="toc-title">本页目录</div>
+            <div id="toc" class="toc-list"></div>
+        </aside>
+    </main>
+
+    <script src="../lang.js"></script>
+</body>
+</html>

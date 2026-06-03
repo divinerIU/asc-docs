@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>UI — ASC Docs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+    <header class="top-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <a class="header-logo" href="../index.html"><div class="logo-icon">A</div><span>ASC Docs</span></a>
+                <nav class="header-nav">
+                    <a href="overview.html">Docs</a>
+                    <a href="agent.html" class="active">Modules</a>
+                    <a href="../developer.html">Dev</a>
+                </nav>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l3.04 3.04a.75.75 0 1 1-1.06 1.06l-3.04-3.04Z"/></svg>
+                    <span>Search docs...</span><kbd>⌘K</kbd>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <aside class="sidebar">
+        <div class="sidebar-section"><div class="sidebar-label">Getting Started</div>
+            <nav class="sidebar-nav">
+                <a href="overview.html">Overview</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Core Modules</div>
+            <nav class="sidebar-nav">
+                <a href="agent.html">Runtime</a>
+                <a href="tools.html">Tools</a>
+                <a href="skills.html">Skills</a>
+                <a href="memory.html">Memory</a>
+                <a href="mcp.html">Services</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Infrastructure</div>
+            <nav class="sidebar-nav">
+                <a href="context.html">Context</a>
+                <a href="prompt.html">Prompt</a>
+                <a href="permissions.html">Permissions</a>
+                <a href="subagent.html">SubAgent</a>
+                <a href="session.html">Session</a>
+                <a href="ui.html" class="active">UI</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Reference</div>
+            <nav class="sidebar-nav">
+                <a href="../developer.html">Developer Guide</a>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="main-content" id="main-content">
+        <div class="content-wrap">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a><span class="sep">/</span>
+            <a href="overview.html">Docs</a><span class="sep">/</span>
+            <a href="ui.html">UI</a>
+        </div>
+        <article id="article">
+
+            <script type="text/markdown" id="md">
+# 终端界面
+
+## 什么是终端界面
+
+终端界面就是你和 ASC **对话的窗口**。
+
+它不是一个简单的命令行——而是一个智能对话界面，你可以在里面打字、看结果、确认操作、查看进度。就像你在微信里和同事聊天一样自然。
+
+## 你能看到什么
+
+**实时进度**：ASC 在思考时，你能看到它在想什么。在执行操作时，你能看到它在做什么。不会出现"它在干嘛我不知道"的情况。
+
+**确认对话框**：当 ASC 要执行危险操作时，会弹出确认框问你"确定吗？"。你有完全的控制权。
+
+**流式输出**：ASC 的回复是实时显示的——它一边想一边说，你不需要等它全部想完才看到结果。
+
+**错误提示**：如果出了问题，ASC 会清楚地告诉你出了什么问题、为什么出问题、怎么解决。
+
+## 智能补全
+
+输入时，ASC 会自动提示：
+
+| 你输入 | ASC 提示 | 说明 |
+|--------|---------|------|
+| `/` | 所有可用命令 | `/context`、`/skills`、`/mcp` 等 |
+| `./` | 文件路径 | 自动补全目录和文件名 |
+| 会话 ID | 历史会话 | 恢复之前的对话 |
+
+这就像手机输入法的联想功能——打几个字母，它就猜到你想说什么。
+
+## 会话管理
+
+你可以同时管理多个对话：
+
+- **新建对话**：用 `/new` 开始一个新的对话
+- **恢复对话**：用 `/resume` 继续之前的对话
+- **查看列表**：用 `/sessions` 看所有对话
+
+这就像浏览器的标签页——你可以同时开多个，随时切换。
+
+## 状态栏
+
+界面底部有一个状态栏，显示：
+- 当前上下文使用量（用了多少"记忆力"）
+- 当前权限模式（安全级别）
+- 待办事项（如果有）
+
+就像汽车的仪表盘——一眼就能看到当前状态。
+
+## 设计哲学
+
+### 界面与引擎分离
+
+终端界面和 ASC 的"大脑"是分开的。界面只负责显示，引擎只负责思考。这就像显示器和主机——它们通过线缆连接，但各自独立。
+
+这意味着 ASC 可以在没有界面的情况下运行——比如在自动化流水线里，不需要人盯着。
+
+### 透明，不是黑箱
+
+你能看到 ASC 的每一步操作——它在想什么、在做什么、为什么这么做。没有任何隐藏的行为。
+
+这就像一个透明的厨房——你能看到厨师的每一步操作，放心地等待你的菜。
+            </script>
+
+
+        </article>
+        </div><aside class="toc-panel">
+            <div class="toc-title">本页目录</div>
+            <div id="toc" class="toc-list"></div>
+        </aside>
+    </main>
+
+    <script src="../lang.js"></script>
+</body>
+</html>

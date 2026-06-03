@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Prompt — ASC Docs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+    <header class="top-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <a class="header-logo" href="../index.html"><div class="logo-icon">A</div><span>ASC Docs</span></a>
+                <nav class="header-nav">
+                    <a href="overview.html">Docs</a>
+                    <a href="agent.html" class="active">Modules</a>
+                    <a href="../developer.html">Dev</a>
+                </nav>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l3.04 3.04a.75.75 0 1 1-1.06 1.06l-3.04-3.04Z"/></svg>
+                    <span>Search docs...</span><kbd>⌘K</kbd>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <aside class="sidebar">
+        <div class="sidebar-section"><div class="sidebar-label">Getting Started</div>
+            <nav class="sidebar-nav">
+                <a href="overview.html">Overview</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Core Modules</div>
+            <nav class="sidebar-nav">
+                <a href="agent.html">Runtime</a>
+                <a href="tools.html">Tools</a>
+                <a href="skills.html">Skills</a>
+                <a href="memory.html">Memory</a>
+                <a href="mcp.html">Services</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Infrastructure</div>
+            <nav class="sidebar-nav">
+                <a href="context.html">Context</a>
+                <a href="prompt.html" class="active">Prompt</a>
+                <a href="permissions.html">Permissions</a>
+                <a href="subagent.html">SubAgent</a>
+                <a href="session.html">Session</a>
+                <a href="ui.html">UI</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Reference</div>
+            <nav class="sidebar-nav">
+                <a href="../developer.html">Developer Guide</a>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="main-content" id="main-content">
+        <div class="content-wrap">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a><span class="sep">/</span>
+            <a href="overview.html">Docs</a><span class="sep">/</span>
+            <a href="prompt.html">Prompt</a>
+        </div>
+        <article id="article">
+
+            <script type="text/markdown" id="md">
+# 提示工程
+
+## 什么是系统提示词
+
+系统提示词就是 ASC 的**岗位说明书**。
+
+当你新入职一家公司，你会收到一份岗位说明书——"你的职责是什么、该遵守什么规则、遇到问题怎么处理、能调用什么资源"。ASC 的系统提示词也是一样——它告诉 AI "你是谁、该怎么做、有什么规则、能用什么工具"。
+
+每次你和 ASC 对话，这份"岗位说明书"都会被发送给 AI 引擎。AI 根据它来理解自己的角色、决定如何回应你。
+
+## 14 个章节：分工明确
+
+ASC 的系统提示词不是一个巨大的文本块，而是分成 14 个章节，每个章节负责不同的事情：
+
+```mermaid
+graph LR
+    subgraph 静态["静态段落（9 章）— 整个会话不变，可缓存"]
+        direction TB
+        S1["身份"] --- S2["系统规则"] --- S3["任务流程"]
+        S4["领域知识"] --- S5["能力编排"] --- S6["安全规则"]
+        S7["执行纪律"] --- S8["沟通风格"] --- S9["输出效率"]
+    end
+
+    subgraph 动态["动态段落（5 章）— 会话间可变"]
+        direction TB
+        D1["运行环境<br/>每轮更新"] --- D2["项目信息<br/>每轮更新"]
+        D3["记忆<br/>会话启动时加载"] --- D4["技能<br/>技能变更时更新"] --- D5["子智能体<br/>变更时更新"]
+    end
+
+    静态 --> 动态
+
+    style 静态 fill:#e8f4fd,stroke:#1a73e8
+    style 动态 fill:#fff3e0,stroke:#e65100
+```
+
+**不变的部分**（静态）：定义 ASC 的身份、行为规则、领域知识。这些内容在整个对话过程中不变——就像你的岗位说明书不会每天改。
+
+**变化的部分**（动态）：包含当前的工作环境、项目信息、可用技能。这些内容每轮对话都会更新——就像你每天的待办事项会变。
+
+## 不变的部分：ASC 的"性格"
+
+| 章节 | 告诉 AI 什么 | 类比 |
+|------|-------------|------|
+| 身份 | "你是一个 Simulink 工程助手" | 你的工牌和职位描述 |
+| 系统规则 | "输出是你的主要接口，遵循运行时约束" | 公司的基本规章制度 |
+| 任务流程 | "用 todo 列表管理任务，分阶段执行" | 项目管理流程 |
+| 领域知识 | "关注功能目标、状态机、可追溯性" | 你的专业技能和经验 |
+| 能力编排 | "如何组合使用工具和技能" | 你的工作方法论 |
+| 安全规则 | "操作前确认，不超出工作区" | 安全操作规程 |
+| 执行纪律 | "优先用结构化能力，能并行就并行" | 工作效率要求 |
+| 沟通风格 | "简洁、直接、工程导向" | 沟通规范 |
+| 输出效率 | "最小变更，避免过度工程化" | 输出质量要求 |
+
+这些章节定义了 ASC 的"性格"——它是一个严谨、高效、安全的工程助手。
+
+## 变化的部分：ASC 的"工作状态"
+
+| 章节 | 包含什么 | 为什么需要 |
+|------|---------|-----------|
+| 运行环境 | 当前目录、日期、操作系统 | 让 AI 知道自己在哪里工作 |
+| 项目信息 | Git 状态、项目配置文件 | 让 AI 了解项目上下文 |
+| 记忆 | 之前积累的项目知识 | 让 AI 记住之前的工作 |
+| 技能 | 当前可用的技能列表 | 让 AI 知道自己会什么 |
+| 子智能体 | 可用的子智能体描述 | 让 AI 知道能分配任务给谁 |
+
+这些章节让 ASC 知道"现在是什么情况"——就像你每天早上看一眼待办事项和项目状态。
+
+## 为什么要分成 14 章
+
+### 缓存省钱
+
+不变的部分放在前面，可以被缓存。第二次对话时，AI 不需要重新处理这些内容——直接用缓存的结果。这大幅降低了 API 调用成本。
+
+就像你不需要每天重新读一遍岗位说明书——它不变，你已经记住了。
+
+### 易于维护
+
+每个章节职责单一，可以独立修改。要改安全规则？只改安全规则那一章。要更新领域知识？只改领域知识那一章。
+
+就像公司的制度手册——每章独立，修改一章不影响其他章。
+
+### 方便调试
+
+如果 ASC 的行为不对，你可以逐章检查——是身份定义有问题？还是安全规则太松？还是领域知识不准确？
+
+就像排查问题时，你可以逐个检查每个环节。
+            </script>
+
+
+        </article>
+        </div><aside class="toc-panel">
+            <div class="toc-title">本页目录</div>
+            <div id="toc" class="toc-list"></div>
+        </aside>
+    </main>
+
+    <script src="../lang.js"></script>
+</body>
+</html>
