@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Developer Guide — ASC Docs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+    <header class="top-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <a class="header-logo" href="index.html"><div class="logo-icon">A</div><span>ASC Docs</span></a>
+                <nav class="header-nav">
+                    <a href="modules/overview.html">Docs</a>
+                    <a href="modules/agent.html">Modules</a>
+                    <a href="developer.html" class="active">Dev</a>
+                </nav>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l3.04 3.04a.75.75 0 1 1-1.06 1.06l-3.04-3.04Z"/></svg>
+                    <span>Search docs...</span><kbd>⌘K</kbd>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <aside class="sidebar">
+        <div class="sidebar-section"><div class="sidebar-label">Getting Started</div>
+            <nav class="sidebar-nav">
+                <a href="overview.html">Overview</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Core Modules</div>
+            <nav class="sidebar-nav">
+                <a href="agent.html">Runtime</a>
+                <a href="tools.html">Tools</a>
+                <a href="skills.html">Skills</a>
+                <a href="memory.html">Memory</a>
+                <a href="mcp.html">Services</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Infrastructure</div>
+            <nav class="sidebar-nav">
+                <a href="context.html">Context</a>
+                <a href="prompt.html">Prompt</a>
+                <a href="permissions.html">Permissions</a>
+                <a href="subagent.html">SubAgent</a>
+                <a href="session.html">Session</a>
+                <a href="ui.html">UI</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Reference</div>
+            <nav class="sidebar-nav">
+                <a href="../developer.html" class="active">Developer Guide</a>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="main-content" id="main-content">
+        <div class="content-wrap">
+        <div class="breadcrumb">
+            <a href="index.html">Home</a><span class="sep">/</span>
+            <a href="developer.html">Developer Guide</a>
+        </div>
+        <article id="article">
+
+            <script type="text/markdown" id="md">
+# 开发者指南
+
+## 本地运行
+
+安装 ASC 并启动：
+
+```bash
+pip install -e .
+asc setup
+```
+
+启动后，在会话内安装领域插件：
+
+```bash
+/plugins install simulink-agentic-toolkit
+```
+
+## 运行测试
+
+```bash
+pytest
+```
+
+测试文件位于 `tests/` 目录下。
+
+## 本地查看文档
+
+```bash
+python -m http.server
+# 然后访问 http://localhost:8000/docs/index.html
+```
+
+## 项目结构
+
+ASC 的代码组织遵循清晰的分层架构：
+
+```mermaid
+graph TB
+    Main["入口 main.py"] --> Chat["对话 chat.py"]
+    Chat --> Agent["执行引擎"]
+    Chat --> Tools["工具系统"]
+    Chat --> Skills["技能系统"]
+    Chat --> Memory["记忆系统"]
+    Chat --> MCP["MCP 客户端"]
+    Agent --> Ctx["上下文管理"]
+    Agent --> Prompt["提示词构建"]
+    Agent --> Perms["权限系统"]
+    Agent --> Sub["子智能体"]
+    Chat --> TUI["终端界面"]
+    Chat --> Slash["斜杠命令"]
+    style Main fill:#e8f4fd,stroke:#1a73e8
+    style Agent fill:#fff3e0,stroke:#e65100
+```
+
+## 关键目录
+
+| 目录 | 说明 |
+|------|------|
+| `src/agentic_simulink_cli/` | 主包源码 |
+| `src/agentic_simulink_cli/agent/` | 执行引擎（QueryEngine + QueryLoop、上下文、权限、事件） |
+| `src/agentic_simulink_cli/tools/` | 工具系统（基类、执行管线、内置工具） |
+| `src/agentic_simulink_cli/cli/` | CLI 入口和斜杠命令 |
+| `src/agentic_simulink_cli/ui/` | 终端界面 |
+| `tests/` | 测试文件 |
+| `docs/` | 文档源码 |
+
+## 编辑文档
+
+文档采用 Markdown 源文件 + HTML 页面的格式。HTML 页面通过 `<script type="text/markdown" id="md">` 标签嵌入 Markdown 内容，由 `lang.js` 在客户端渲染为 HTML。
+
+修改文档时：
+1. 编辑对应 HTML 文件中的 `<script type="text/markdown" id="md">` 标签内容
+2. 刷新浏览器页面即可看到效果
+
+## 如何扩展 ASC
+
+### 添加新工具
+
+在 `src/agentic_simulink_cli/tools/base/` 目录下创建新的工具类，继承 `Tool` 基类，定义输入 schema 和执行逻辑。
+
+### 添加新技能
+
+在 `.asc/skills/` 目录下创建新的文件夹，里面放一个 `SKILL.md` 文件，定义技能的名称、描述、工作流程和可用工具。
+
+### 添加新斜杠命令
+
+在 `src/agentic_simulink_cli/cli/slash_commands/` 目录下创建新的命令处理器。
+
+## 环境变量
+
+| 变量 | 说明 |
+|------|------|
+| `ANTHROPIC_API_KEY` | Anthropic API 密钥 |
+| `OPENAI_API_KEY` | OpenAI API 密钥 |
+| `ASC_MCP_INIT_TIMEOUT_MS` | MCP 握手超时（毫秒） |
+| `ASC_MCP_TOOL_CALL_TIMEOUT_MS` | MCP 工具调用超时（毫秒） |
+
+## 配置文件
+
+| 文件 | 位置 | 说明 |
+|------|------|------|
+| `settings.json` | `~/.asc/` 或 `.asc/` | 权限规则、MCP 服务器配置 |
+| `.mcp.json` | 项目根目录 | MCP 服务器配置（兼容 Claude Code） |
+| `.env` | 项目根目录 | 环境变量（API 密钥等） |
+            </script>
+
+
+        </article>
+        </div><aside class="toc-panel">
+            <div class="toc-title">本页目录</div>
+            <div id="toc" class="toc-list"></div>
+        </aside>
+    </main>
+
+    <script src="lang.js"></script>
+</body>
+</html>

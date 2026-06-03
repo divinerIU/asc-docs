@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Session — ASC Docs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+    <header class="top-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <a class="header-logo" href="../index.html"><div class="logo-icon">A</div><span>ASC Docs</span></a>
+                <nav class="header-nav">
+                    <a href="overview.html">Docs</a>
+                    <a href="agent.html" class="active">Modules</a>
+                    <a href="../developer.html">Dev</a>
+                </nav>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l3.04 3.04a.75.75 0 1 1-1.06 1.06l-3.04-3.04Z"/></svg>
+                    <span>Search docs...</span><kbd>⌘K</kbd>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <aside class="sidebar">
+        <div class="sidebar-section"><div class="sidebar-label">Getting Started</div>
+            <nav class="sidebar-nav">
+                <a href="overview.html">Overview</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Core Modules</div>
+            <nav class="sidebar-nav">
+                <a href="agent.html">Runtime</a>
+                <a href="tools.html">Tools</a>
+                <a href="skills.html">Skills</a>
+                <a href="memory.html">Memory</a>
+                <a href="mcp.html">Services</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Infrastructure</div>
+            <nav class="sidebar-nav">
+                <a href="context.html">Context</a>
+                <a href="prompt.html">Prompt</a>
+                <a href="permissions.html">Permissions</a>
+                <a href="subagent.html">SubAgent</a>
+                <a href="session.html" class="active">Session</a>
+                <a href="ui.html">UI</a>
+                <a href="cli.html">CLI</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Reference</div>
+            <nav class="sidebar-nav">
+                <a href="../developer.html">Developer Guide</a>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="main-content" id="main-content">
+        <div class="content-wrap">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a><span class="sep">/</span>
+            <a href="overview.html">Docs</a><span class="sep">/</span>
+            <a href="session.html">Session</a>
+        </div>
+        <article id="article">
+
+            <script type="text/markdown" id="md">
+# 会话管理
+
+## 什么是会话
+
+会话就是你和 ASC 的**一次对话**。
+
+每次你启动 ASC，它会自动创建一个新的会话。你和 ASC 的所有交流——你说的话、它做的事、它调用的工具、它的回复——都会记录在这个会话里。
+
+会话就像一个**工作日志**：记录了你这次和 ASC 一起做了什么。
+
+## 会话有什么用
+
+**接续上次的工作**：上次对话做到一半的事情，下次可以继续。用 `/resume` 命令就能恢复上次的会话，ASC 会记住之前的所有上下文。
+
+**查看历史记录**：用 `/sessions` 命令可以看到所有会话列表——什么时候创建的、讨论了什么主题、有多少条消息。
+
+**自动生成标题**：ASC 会在对话进行几轮后自动生成一个标题，方便你识别每个会话是关于什么的。就像邮件的"主题"一样。
+
+**并行工作**：你可以同时有多个会话，就像浏览器的标签页。用 `/new` 开始新会话，用 `/resume` 切换回旧会话。
+
+## 会话存在哪里
+
+会话文件保存在项目的 `.asc/sessions/` 目录下，格式是 JSONL（每行一条 JSON 记录）。
+
+```
+.asc/sessions/
+├── abc123.jsonl    ← 会话 A
+├── def456.jsonl    ← 会话 B
+└── .active_session ← 当前活跃会话的 ID
+```
+
+每个会话文件是一个**追加日志**——新的对话内容追加到文件末尾，不会覆盖之前的内容。这保证了即使 ASC 异常退出，已经保存的内容也不会丢失。
+
+## 会话里记录了什么
+
+每个会话记录包含：
+
+| 信息 | 说明 |
+|------|------|
+| 会话 ID | 唯一标识符 |
+| 创建时间 | 什么时候开始的 |
+| 最后活跃时间 | 最后一次交互的时间 |
+| 消息数量 | 总共多少条消息 |
+| 标题 | 自动生成或手动设置的主题 |
+| 模型信息 | 使用的 AI 模型 |
+| 权限模式 | 当前的安全级别 |
+| 对话内容 | 你和 ASC 的完整对话记录 |
+
+## 会话标题
+
+ASC 会在对话进行几轮后自动生成一个标题。标题来自两个来源：
+
+- **自动生成**：ASC 分析对话内容，提取一个简短的主题描述
+- **手动设置**：你可以通过 `/metadata` 命令手动修改标题
+
+一旦设置了标题（无论是自动生成还是手动），它就会"粘住"——后续的会话保存不会覆盖它。这保证了你手动设置的标题不会被意外替换。
+
+## 会话与项目
+
+会话是**按项目隔离**的。每个项目有自己的 `.asc/sessions/` 目录，会话列表只显示当前项目的会话。
+
+这意味着你在项目 A 里看不到项目 B 的会话，不会被无关的对话干扰。
+
+## 会话与记忆的区别
+
+| | 会话 | 记忆 |
+|--|------|------|
+| **粒度** | 一次完整的对话 | 跨对话的项目知识 |
+| **生命周期** | 对话结束后归档 | 持续积累，长期有效 |
+| **内容** | 完整的对话记录 | 提炼后的事实和结论 |
+| **用途** | 接续上次工作 | 让 ASC 了解你的项目 |
+
+简单来说：会话是"这次聊了什么"，记忆是"关于这个项目我知道什么"。
+
+## 相关命令
+
+| 命令 | 作用 |
+|------|------|
+| `/sessions` | 查看当前项目的所有会话 |
+| `/resume` | 恢复一个之前的会话 |
+| `/new` | 开始一个新会话 |
+| `/summary` | 生成当前会话的摘要 |
+| `/metadata` | 查看或修改会话的元数据 |
+
+## 设计哲学
+
+### 追加而非覆盖
+
+会话采用追加日志格式，而不是每次都覆盖整个文件。这保证了数据安全——即使 ASC 在保存过程中崩溃，已经写入的内容不会丢失。
+
+就像记日记：你不会每天把之前的日记撕掉重写，而是在后面继续写。
+
+### 自动化一切
+
+会话的创建、保存、标题生成都是自动的。你不需要手动管理——ASC 会在合适的时机做合适的事情。
+
+### 按项目隔离
+
+不同项目的会话互不干扰。你在做项目 A 时不会看到项目 B 的对话记录。
+            </script>
+
+        </article>
+        </div><aside class="toc-panel">
+            <div class="toc-title">本页目录</div>
+            <div id="toc" class="toc-list"></div>
+        </aside>
+    </main>
+
+    <script src="../lang.js"></script>
+</body>
+</html>

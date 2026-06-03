@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Memory — ASC Docs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+    <header class="top-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <a class="header-logo" href="../index.html"><div class="logo-icon">A</div><span>ASC Docs</span></a>
+                <nav class="header-nav">
+                    <a href="overview.html">Docs</a>
+                    <a href="agent.html" class="active">Modules</a>
+                    <a href="../developer.html">Dev</a>
+                </nav>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l3.04 3.04a.75.75 0 1 1-1.06 1.06l-3.04-3.04Z"/></svg>
+                    <span>Search docs...</span><kbd>⌘K</kbd>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <aside class="sidebar">
+        <div class="sidebar-section"><div class="sidebar-label">Getting Started</div>
+            <nav class="sidebar-nav">
+                <a href="overview.html">Overview</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Core Modules</div>
+            <nav class="sidebar-nav">
+                <a href="agent.html">Runtime</a>
+                <a href="tools.html">Tools</a>
+                <a href="skills.html">Skills</a>
+                <a href="memory.html" class="active">Memory</a>
+                <a href="mcp.html">Services</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Infrastructure</div>
+            <nav class="sidebar-nav">
+                <a href="context.html">Context</a>
+                <a href="prompt.html">Prompt</a>
+                <a href="permissions.html">Permissions</a>
+                <a href="subagent.html">SubAgent</a>
+                <a href="session.html">Session</a>
+                <a href="ui.html">UI</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Reference</div>
+            <nav class="sidebar-nav">
+                <a href="../developer.html">Developer Guide</a>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="main-content" id="main-content">
+        <div class="content-wrap">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a><span class="sep">/</span>
+            <a href="overview.html">Docs</a><span class="sep">/</span>
+            <a href="memory.html">Memory</a>
+        </div>
+        <article id="article">
+
+            <script type="text/markdown" id="md">
+# 记忆架构
+
+## 为什么需要记忆
+
+想象一下：你每天上班都要重新介绍一遍自己的项目——"我在做 XX 模块，负责人是 XX，接口定义是 XX，上周改了 XX……"。这太痛苦了。
+
+没有记忆的 AI 就是这样——每次对话都从零开始，你需要反复解释项目背景、技术约定、之前的修改。这不仅浪费时间，还容易遗漏关键信息。
+
+ASC 的记忆系统就是为了解决这个问题：**让 ASC 记住你的项目，下次不用从头说起**。
+
+## 记忆不是工具，是基础设施
+
+记忆不是 ASC "选择"要做的事情——它是 ASC 自动完成的。就像你不需要"选择"呼吸一样，ASC 也不需要"选择"记忆。
+
+每次对话开始，ASC 会自动加载之前积累的项目知识。每次对话结束，ASC 会自动保存新的发现。你不需要手动管理，一切都是自动的。
+
+## 四层记忆：从项目全局到当前工作
+
+ASC 的记忆分四层，从大到小：
+
+```mermaid
+graph TB
+    P["项目信息<br/>项目名、平台、团队约定"] --> D["领域知识<br/>模块职责、接口定义、技术栈"]
+    D --> F["事实卡片<br/>验证过的技术事实"]
+    F --> W["工作记忆<br/>当前在做什么、下一步计划"]
+    style P fill:#e8f5e9,stroke:#2e7d32
+    style W fill:#fff3e0,stroke:#e65100
+```
+
+**项目信息**（最稳定）：整个项目共享的全局信息，比如项目名称、编码规范、团队约定。这些信息很少变化，通常在项目初始化时设置。
+
+**领域知识**（稳定）：每个模块或功能域的专属信息。比如"这个模块负责信号路由"、"接口定义在 XX 文件里"、"负责人是 XX"。不同模块的领域知识互不干扰。
+
+**事实卡片**（偶尔更新）：经过验证的技术事实。比如"XX 模块的采样时间是 0.01s"、"XX 信号的数据类型是 single"。这些信息经过多次确认，可以信赖。
+
+**工作记忆**（频繁更新）：当前正在进行的工作。比如"正在修改 XX 子系统"、"刚改了 XX 参数"、"下一步要跑 MIL 仿真"。这些信息反映你的最新工作状态。
+
+## 记忆存放在哪里
+
+记忆文件存放在项目目录的 `.asc/memory/` 文件夹里。ASC 会从当前目录向上查找，找到所有相关的记忆文件。
+
+这意味着：
+- 项目根目录的记忆对整个项目生效
+- 子目录的记忆只对该子目录生效
+- 不同子目录的记忆互不干扰
+
+就像公司的知识库：有全公司共享的（项目信息），有部门专属的（领域知识），有个人笔记的（工作记忆）。
+
+## 什么时候读，什么时候写
+
+**读取时机**（ASC 自动完成）：
+- 每次对话开始时，ASC 自动加载所有相关记忆
+- 恢复之前的对话时，ASC 重新加载最新记忆
+- 对话中间，ASC 会定期刷新以获取最新状态
+
+**写入时机**（ASC 自动完成）：
+- 对话结束时，ASC 自动保存新的发现
+- 你明确说"记住这个"时，ASC 立即保存
+- 一个结论经过多次确认后，ASC 会把它从事实卡片"升级"为稳定知识
+
+## 保守写入：宁可少记，不要记错
+
+ASC 的记忆系统有一个核心原则：**保守写入**。
+
+它不会什么都记——只有经过确认的信息才会被保存。临时的猜测、未经验证的结论、一次性的操作结果，都不会被写入记忆。
+
+这就像一个严谨的工程师做笔记：不是什么都记，只记确定的、重要的、以后会用到的。记错了比没记更糟糕。
+
+## 记忆如何帮助你
+
+**减少重复解释**：你不需要每次对话都重新介绍项目背景。ASC 已经记住了。
+
+**保持工作连续性**：上次对话做到一半的事情，下次对话 ASC 还记得。你可以直接接上。
+
+**积累项目知识**：随着对话次数增加，ASC 对你的项目越来越了解。它记住的技术事实、接口定义、团队约定，都会在后续对话中自动生效。
+
+**支持团队协作**：记忆文件是项目的一部分，可以提交到 Git。团队成员共享同一套项目知识，新人不需要从头学。
+            </script>
+
+
+        </article>
+        </div><aside class="toc-panel">
+            <div class="toc-title">本页目录</div>
+            <div id="toc" class="toc-list"></div>
+        </aside>
+    </main>
+
+    <script src="../lang.js"></script>
+</body>
+</html>

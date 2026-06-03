@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>ASC Docs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+    <!-- Top Header -->
+    <header class="top-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <a class="header-logo" href="index.html">
+                    <div class="logo-icon">A</div>
+                    <span>ASC Docs</span>
+                </a>
+                <nav class="header-nav">
+                    <a href="modules/overview.html">Docs</a>
+                    <a href="modules/agent.html">Modules</a>
+                    <a href="developer.html">Dev</a>
+                </nav>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l3.04 3.04a.75.75 0 1 1-1.06 1.06l-3.04-3.04Z"/></svg>
+                    <span>Search docs...</span>
+                    <kbd>⌘K</kbd>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <div class="landing-wrap">
+        <section class="landing-hero">
+            <div class="badge">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm7-3.25v2.992l2.028.812a.75.75 0 0 1-.557 1.392l-2.5-1A.751.751 0 0 1 7 8.25v-3.5a.75.75 0 0 1 1.5 0Z"/></svg>
+                开源 · 面向 Simulink 工程师
+            </div>
+            <h1>Agentic Simulink CLI</h1>
+            <p class="tagline">用自然语言操作 Simulink 模型的智能工程助手。你说需求，它帮你完成——读文件、改模型、跑命令、查代码，全程安全可控。</p>
+            <div class="hero-actions">
+                <a class="btn-primary" href="modules/overview.html">
+                    Get Started
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.22 3.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L9.94 8 6.22 4.28a.75.75 0 0 1 0-1.06Z"/></svg>
+                </a>
+                <a class="btn-secondary" href="developer.html">Developer Guide</a>
+            </div>
+        </section>
+
+        <!-- Features -->
+        <section class="feature-section">
+            <h2>核心能力</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    </div>
+                    <h3>智能对话</h3>
+                    <p>用自然语言描述需求，ASC 理解你的意图并自动执行。支持复杂任务的多步推理。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+                    </div>
+                    <h3>安全操作</h3>
+                    <p>每次操作都经过多层安全检查。危险操作必须确认，所有操作都有审计日志。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                    <h3>项目记忆</h3>
+                    <p>ASC 记住你的项目信息、技术约定和工作进度。下次对话不用从头说起。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    </div>
+                    <h3>技能扩展</h3>
+                    <p>用 Markdown 定义工作流程，ASC 按你的 SOP 执行。团队共享，新人即用。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 2.75C1 1.784 1.784 1 2.75 1h10.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25Zm1.75-.25a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 5a.75.75 0 0 1 .75.75v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5A.75.75 0 0 1 8 5Z"/></svg>
+                    </div>
+                    <h3>服务与集成</h3>
+                    <p>通过标准协议连接 MATLAB、Simulink 等外部工具。即插即用，自动重连。</p>
+                </div>
+                <div class="feature-card">
+                    <div class="icon">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    </div>
+                    <h3>透明界面</h3>
+                    <p>实时看到 ASC 在想什么、做什么。流式输出，确认对话框，完全可控。</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Start -->
+        <section class="quickstart">
+            <h2>快速开始</h2>
+            <pre><code><span style="color:#6b7280"># 安装并启动</span>
+pip install -e .
+asc setup
+
+    <span style="color:#6b7280"># 在 ASC 会话内安装 Simulink 领域插件</span>
+    /plugins install simulink-agentic-toolkit</code></pre>
+            <p style="text-align:center;margin-top:16px;color:var(--text-secondary);font-size:14px">启动后，在终端里用自然语言和 ASC 对话即可。试试输入："帮我看看当前目录下有哪些 Simulink 模型"</p>
+        </section>
+
+        <!-- Doc Links -->
+        <section class="doc-grid">
+            <h2>文档导航</h2>
+            <div class="doc-cards">
+                <a class="doc-card" href="modules/overview.html">
+                    <div class="card-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M0 1.75A.75.75 0 0 1 .75 1h4.253c1.227 0 2.317.59 3 1.501A3.743 3.743 0 0 1 11.006 1h4.245a.75.75 0 0 1 .75.75v10.5a.75.75 0 0 1-.75.75h-4.507a2.25 2.25 0 0 0-1.591.659l-.622.621a.75.75 0 0 1-1.06 0l-.622-.621A2.25 2.25 0 0 0 5.258 13H.75a.75.75 0 0 1-.75-.75Zm7.251 10.324.004-5.073-.002-2.253A2.25 2.25 0 0 0 5.003 2.5H1.5v9h3.757a3.75 3.75 0 0 1 1.994.574ZM8.755 4.75l-.004 7.322a3.752 3.752 0 0 1 1.992-.572H14.5v-9h-3.495a2.25 2.25 0 0 0-2.25 2.25Z"/></svg>
+                    </div>
+                    <div class="card-text">
+                        <h4>系统概览</h4>
+                        <p>ASC 是什么、能帮你做什么、怎么工作的</p>
+                    </div>
+                    <span class="arrow">→</span>
+                </a>
+                <a class="doc-card" href="modules/agent.html">
+                    <div class="card-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8.2 8.2 0 0 1 .701.031C9.444.095 9.99.645 10.16 1.29l.288 1.107c.018.066.079.158.212.224.231.114.454.243.668.386.123.082.233.09.299.071l1.103-.303c.644-.176 1.392.021 1.82.63.27.385.506.792.704 1.218.315.675.111 1.422-.364 1.891l-.814.806c-.049.048-.098.147-.088.294a6.57 6.57 0 0 1 0 .772c-.01.147.04.246.088.294l.814.806c.475.469.679 1.216.364 1.891a7.977 7.977 0 0 1-.704 1.217c-.428.61-1.176.807-1.82.63l-1.102-.302c-.067-.019-.177-.011-.3.071a5.909 5.909 0 0 1-.668.386c-.133.066-.194.158-.211.224l-.29 1.106c-.168.646-.715 1.196-1.458 1.26a8.006 8.006 0 0 1-1.402 0c-.743-.064-1.29-.614-1.458-1.26l-.29-1.106c-.017-.066-.078-.158-.211-.224a5.91 5.91 0 0 1-.668-.386c-.123-.082-.233-.09-.3-.071l-1.102.302c-.644.177-1.392-.02-1.82-.63a7.975 7.975 0 0 1-.704-1.217c-.315-.675-.111-1.422.363-1.891l.815-.806c.049-.048.098-.147.088-.294a6.55 6.55 0 0 1 0-.772c.01-.147-.04-.246-.088-.294l-.815-.806C.635 6.032.431 5.284.746 4.61a7.92 7.92 0 0 1 .704-1.217c.428-.61 1.176-.807 1.82-.63l1.102.302c.067.019.177.011.3-.071.214-.143.437-.272.668-.386.133-.066.194-.158.211-.224l.29-1.106C6.009.645 6.556.095 7.299.031A8.167 8.167 0 0 1 8 0ZM5.5 4a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm7 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM8 12.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/></svg>
+                    </div>
+                    <div class="card-text">
+                        <h4>执行引擎</h4>
+                        <p>QueryEngine + QueryLoop：全局调度与单轮推理</p>
+                    </div>
+                    <span class="arrow">→</span>
+                </a>
+                <a class="doc-card" href="modules/tools.html">
+                    <div class="card-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M5.433 2.304A4.492 4.492 0 0 0 3.5 6c0 1.598.832 3.002 2.09 3.802.518.328.929.923.902 1.64v.008l-.164 3.337a.75.75 0 1 1-1.498-.073l.163-3.34c.007-.14-.1-.313-.36-.472A5.98 5.98 0 0 1 2 6c0-2.56 1.587-4.742 3.846-5.538a.75.75 0 0 1 .587 1.381v.461ZM9.567 2.304A4.492 4.492 0 0 1 12.5 6c0 1.598-.832 3.002-2.09 3.802-.518.328-.929.923-.902 1.64v.008l.164 3.337a.75.75 0 1 0 1.498-.073l-.163-3.34c-.007-.14.1-.313.36-.472A5.98 5.98 0 0 0 14 6c0-2.56-1.587-4.742-3.846-5.538a.75.75 0 1 0-.587 1.381v.461ZM8 10.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/></svg>
+                    </div>
+                    <div class="card-text">
+                        <h4>工具系统</h4>
+                        <p>ASC 会做的事情：读文件、改模型、跑命令</p>
+                    </div>
+                    <span class="arrow">→</span>
+                </a>
+                <a class="doc-card" href="modules/skills.html">
+                    <div class="card-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8.2 8.2 0 0 1 .701.031C9.444.095 9.99.645 10.16 1.29l.288 1.107c.018.066.079.158.212.224.231.114.454.243.668.386.123.082.233.09.299.071l1.103-.303c.644-.176 1.392.021 1.82.63.27.385.506.792.704 1.218.315.675.111 1.422-.364 1.891l-.814.806c-.049.048-.098.147-.088.294a6.57 6.57 0 0 1 0 .772c-.01.147.04.246.088.294l.814.806c.475.469.679 1.216.364 1.891a7.977 7.977 0 0 1-.704 1.217c-.428.61-1.176.807-1.82.63l-1.102-.302c-.067-.019-.177-.011-.3.071a5.909 5.909 0 0 1-.668.386c-.133.066-.194.158-.211.224l-.29 1.106c-.168.646-.715 1.196-1.458 1.26a8.006 8.006 0 0 1-1.402 0c-.743-.064-1.29-.614-1.458-1.26l-.29-1.106c-.017-.066-.078-.158-.211-.224a5.91 5.91 0 0 1-.668-.386c-.123-.082-.233-.09-.3-.071l-1.102.302c-.644.177-1.392-.02-1.82-.63a7.975 7.975 0 0 1-.704-1.217c-.315-.675-.111-1.422.363-1.891l.815-.806c.049-.048.098-.147.088-.294a6.55 6.55 0 0 1 0-.772c.01-.147-.04-.246-.088-.294l-.815-.806C.635 6.032.431 5.284.746 4.61a7.92 7.92 0 0 1 .704-1.217c.428-.61 1.176-.807 1.82-.63l1.102.302c.067.019.177.011.3-.071.214-.143.437-.272.668-.386.133-.066.194-.158.211-.224l.29-1.106C6.009.645 6.556.095 7.299.031A8.167 8.167 0 0 1 8 0ZM5.5 4a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm7 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM8 12.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/></svg>
+                    </div>
+                    <div class="card-text">
+                        <h4>技能系统</h4>
+                        <p>ASC 的标准作业程序（SOP）</p>
+                    </div>
+                    <span class="arrow">→</span>
+                </a>
+                <a class="doc-card" href="modules/memory.html">
+                    <div class="card-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M1.75 1.5a.25.25 0 0 0-.25.25v12.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V1.75a.25.25 0 0 0-.25-.25H1.75ZM0 1.75C0 .784.784 0 1.75 0h12.5C15.216 0 16 .784 16 1.75v12.5A1.75 1.75 0 0 1 14.25 16H1.75A1.75 1.75 0 0 1 0 14.25ZM9.5 9.5v-4h1.75a.75.75 0 0 1 0 1.5H11v2.5h1.25a.75.75 0 0 1 0 1.5H9.5Zm-4 0v-4h2v5.5H4.75a.75.75 0 0 1 0-1.5H5.5Z"/></svg>
+                    </div>
+                    <div class="card-text">
+                        <h4>记忆架构</h4>
+                        <p>ASC 的项目笔记本：跨会话记住你的项目</p>
+                    </div>
+                    <span class="arrow">→</span>
+                </a>
+                <a class="doc-card" href="modules/mcp.html">
+                    <div class="card-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M1 2.75C1 1.784 1.784 1 2.75 1h10.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25Zm1.75-.25a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 5a.75.75 0 0 1 .75.75v2.5h2.5a.75.75 0 0 1 0 1.5h-2.5v2.5a.75.75 0 0 1-1.5 0v-2.5h-2.5a.75.75 0 0 1 0-1.5h2.5v-2.5A.75.75 0 0 1 8 5Z"/></svg>
+                    </div>
+                    <div class="card-text">
+                        <h4>服务与集成</h4>
+                        <p>MCP 万能插头：连接 MATLAB 等外部工具与插件系统</p>
+                    </div>
+                    <span class="arrow">→</span>
+                </a>
+                <a class="doc-card" href="modules/permissions.html">
+                    <div class="card-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M6.5 1.75a.25.25 0 0 1 .25-.25h2.5a.25.25 0 0 1 .25.25V3h-3ZM7.75 3.5h.5v4.25l1.72 1.72a.75.75 0 0 1-1.06 1.06l-2-2A.751.751 0 0 1 7 8.25v-4.75ZM4.25 3.5h-.5v4.75c0 .199.079.39.22.53l2 2a.75.75 0 0 1-1.06 1.06l-1.72-1.72V3.5h.06ZM6.5 0a3 3 0 0 0-3 3v1.34a2.25 2.25 0 0 0-1.5 2.12v4.29c0 1.67 1.35 3.02 3.02 3.02h3.96c1.67 0 3.02-1.35 3.02-3.02V6.46a2.25 2.25 0 0 0-1.5-2.12V3a3 3 0 0 0-3-3ZM5.75 3v1.25h4.5V3a1.5 1.5 0 0 0-1.5-1.5h-1.5A1.5 1.5 0 0 0 5.75 3Z"/></svg>
+                    </div>
+                    <div class="card-text">
+                        <h4>权限与安全</h4>
+                        <p>安全护栏：保护你的项目不被误操作</p>
+                    </div>
+                    <span class="arrow">→</span>
+                </a>
+                <a class="doc-card" href="modules/context.html">
+                    <div class="card-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M1 2.75C1 1.784 1.784 1 2.75 1h10.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 13.25 15H2.75A1.75 1.75 0 0 1 1 13.25Zm1.75-.25a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h10.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25Zm6.5 3a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75h-.01a.75.75 0 0 1-.75-.75V5.5Zm-3.5-.75a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V5.5a.75.75 0 0 0-.75-.75H4.75Zm-2.75.75a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01a.75.75 0 0 1-.75.75h-.01a.75.75 0 0 1-.75-.75V5.5Zm7.75 3a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V9.25a.75.75 0 0 0-.75-.75h-.01Zm-3.5-.75a.75.75 0 0 1 .75-.75h.01a.75.75 0 0 1 .75.75v.01c0 .414-.336.75-.75.75h-.01a.75.75 0 0 1-.75-.75V9.25Zm-3.5.75a.75.75 0 0 0-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 0 0 .75-.75V9.25a.75.75 0 0 0-.75-.75H4.75Z"/></svg>
+                    </div>
+                    <div class="card-text">
+                        <h4>上下文管理</h4>
+                        <p>桌面整理术：自动管理对话内容</p>
+                    </div>
+                    <span class="arrow">→</span>
+                </a>
+                <a class="doc-card" href="modules/ui.html">
+                    <div class="card-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M0 2.75C0 1.784.784 1 1.75 1h12.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 14.25 15H1.75A1.75 1.75 0 0 1 0 13.25ZM1.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 10a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg>
+                    </div>
+                    <div class="card-text">
+                        <h4>终端界面</h4>
+                        <p>对话窗口：实时看到 ASC 在做什么</p>
+                    </div>
+                    <span class="arrow">→</span>
+                </a>
+                <a class="doc-card" href="modules/prompt.html">
+                    <div class="card-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M0 2.75C0 1.784.784 1 1.75 1h12.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 14.25 15H1.75A1.75 1.75 0 0 1 0 13.25ZM1.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 10a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg>
+                    </div>
+                    <div class="card-text">
+                        <h4>提示词工程</h4>
+                        <p>ASC 的岗位说明书：告诉 AI "你是谁、该怎么做"</p>
+                    </div>
+                    <span class="arrow">→</span>
+                </a>
+                <a class="doc-card" href="modules/subagent.html">
+                    <div class="card-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8.2 8.2 0 0 1 .701.031C9.444.095 9.99.645 10.16 1.29l.288 1.107c.018.066.079.158.212.224.231.114.454.243.668.386.123.082.233.09.299.071l1.103-.303c.644-.176 1.392.021 1.82.63.27.385.506.792.704 1.218.315.675.111 1.422-.364 1.891l-.814.806c-.049.048-.098.147-.088.294a6.57 6.57 0 0 1 0 .772c-.01.147.04.246.088.294l.814.806c.475.469.679 1.216.364 1.891a7.977 7.977 0 0 1-.704 1.217c-.428.61-1.176.807-1.82.63l-1.102-.302c-.067-.019-.177-.011-.3.071a5.909 5.909 0 0 1-.668.386c-.133.066-.194.158-.211.224l-.29 1.106c-.168.646-.715 1.196-1.458 1.26a8.006 8.006 0 0 1-1.402 0c-.743-.064-1.29-.614-1.458-1.26l-.29-1.106c-.017-.066-.078-.158-.211-.224a5.91 5.91 0 0 1-.668-.386c-.123-.082-.233-.09-.3-.071l-1.102.302c-.644.177-1.392-.02-1.82-.63a7.975 7.975 0 0 1-.704-1.217c-.315-.675-.111-1.422.363-1.891l.815-.806c.049-.048.098-.147.088-.294a6.55 6.55 0 0 1 0-.772c.01-.147-.04-.246-.088-.294l-.815-.806C.635 6.032.431 5.284.746 4.61a7.92 7.92 0 0 1 .704-1.217c.428-.61 1.176-.807 1.82-.63l1.102.302c.067.019.177.011.3-.071.214-.143.437-.272.668-.386.133-.066.194-.158.211-.224l.29-1.106C6.009.645 6.556.095 7.299.031A8.167 8.167 0 0 1 8 0ZM5.5 4a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm7 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM8 12.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/></svg>
+                    </div>
+                    <div class="card-text">
+                        <h4>多智能体</h4>
+                        <p>实习生系统：把任务分配给多个助手并行处理</p>
+                    </div>
+                    <span class="arrow">→</span>
+                </a>
+                <a class="doc-card" href="modules/session.html">
+                    <div class="card-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M0 2.75C0 1.784.784 1 1.75 1h12.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 14.25 15H1.75A1.75 1.75 0 0 1 0 13.25ZM1.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 10a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg>
+                    </div>
+                    <div class="card-text">
+                        <h4>会话管理</h4>
+                        <p>工作日志：对话的创建、恢复、历史记录</p>
+                    </div>
+                    <span class="arrow">→</span>
+                </a>
+                <a class="doc-card" href="modules/cli.html">
+                    <div class="card-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M0 2.75C0 1.784.784 1 1.75 1h12.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 14.25 15H1.75A1.75 1.75 0 0 1 0 13.25ZM6.5 6.5v8h7.75a.25.25 0 0 0 .25-.25V6.5Zm8-1.5V1.75a.25.25 0 0 0-.25-.25H1.75a.25.25 0 0 0-.25.25V5ZM1.5 13.25c0 .138.112.25.25.25H6.5v-8H1.5Z"/></svg>
+                    </div>
+                    <div class="card-text">
+                        <h4>命令行</h4>
+                        <p>斜杠命令：对话中的快捷操作</p>
+                    </div>
+                    <span class="arrow">→</span>
+                </a>
+                <a class="doc-card" href="developer.html">
+                    <div class="card-icon">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M0 2.75C0 1.784.784 1 1.75 1h12.5c.966 0 1.75.784 1.75 1.75v10.5A1.75 1.75 0 0 1 14.25 15H1.75A1.75 1.75 0 0 1 0 13.25ZM1.75 2.5a.25.25 0 0 0-.25.25v10.5c0 .138.112.25.25.25h12.5a.25.25 0 0 0 .25-.25V2.75a.25.25 0 0 0-.25-.25ZM8 10a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg>
+                    </div>
+                    <div class="card-text">
+                        <h4>开发者指南</h4>
+                        <p>如何扩展 ASC：添加工具、技能、命令</p>
+                    </div>
+                    <span class="arrow">→</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="site-footer" style="margin-left:0">
+            <p>ASC Docs — Agentic Simulink CLI · 本地预览: <code style="font-size:12px;background:var(--bg-elevated);padding:2px 6px;border-radius:4px">python -m http.server</code></p>
+        </footer>
+    </div>
+
+    <script src="lang.js"></script>
+</body>
+</html>

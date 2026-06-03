@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Skills — ASC Docs</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+    <header class="top-header">
+        <div class="header-inner">
+            <div class="header-left">
+                <a class="header-logo" href="../index.html"><div class="logo-icon">A</div><span>ASC Docs</span></a>
+                <nav class="header-nav">
+                    <a href="overview.html">Docs</a>
+                    <a href="agent.html" class="active">Modules</a>
+                    <a href="../developer.html">Dev</a>
+                </nav>
+            </div>
+            <div class="header-right">
+                <div class="search-box">
+                    <svg viewBox="0 0 16 16" fill="currentColor"><path d="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.82 4.74a6 6 0 1 1 1.06-1.06l3.04 3.04a.75.75 0 1 1-1.06 1.06l-3.04-3.04Z"/></svg>
+                    <span>Search docs...</span><kbd>⌘K</kbd>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <aside class="sidebar">
+        <div class="sidebar-section"><div class="sidebar-label">Getting Started</div>
+            <nav class="sidebar-nav">
+                <a href="overview.html">Overview</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Core Modules</div>
+            <nav class="sidebar-nav">
+                <a href="agent.html">Runtime</a>
+                <a href="tools.html">Tools</a>
+                <a href="skills.html" class="active">Skills</a>
+                <a href="memory.html">Memory</a>
+                <a href="mcp.html">Services</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Infrastructure</div>
+            <nav class="sidebar-nav">
+                <a href="context.html">Context</a>
+                <a href="prompt.html">Prompt</a>
+                <a href="permissions.html">Permissions</a>
+                <a href="subagent.html">SubAgent</a>
+                <a href="session.html">Session</a>
+                <a href="ui.html">UI</a>
+            </nav>
+        </div>
+        <div class="sidebar-section"><div class="sidebar-label">Reference</div>
+            <nav class="sidebar-nav">
+                <a href="../developer.html">Developer Guide</a>
+            </nav>
+        </div>
+    </aside>
+
+    <main class="main-content" id="main-content">
+        <div class="content-wrap">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a><span class="sep">/</span>
+            <a href="overview.html">Docs</a><span class="sep">/</span>
+            <a href="skills.html">Skills</a>
+        </div>
+        <article id="article">
+
+            <script type="text/markdown" id="md">
+# 技能系统
+
+## 什么是技能
+
+技能就是 **ASC 的标准作业程序（SOP）**。
+
+在你们工厂里，每个工序都有 SOP——"先检查零件，再组装，再测试"。ASC 的技能也一样——它告诉 ASC "遇到这种情况，按这个流程做"。
+
+比如你可以定义一个"模型规范检查"技能：
+1. 先读取模型文件
+2. 检查信号维度一致性
+3. 检查采样时间是否符合规范
+4. 生成检查报告
+
+以后你只需要说"帮我检查规范"，ASC 就会按照这个流程自动执行。
+
+## 技能和工具的区别
+
+**工具**是 ASC 会做的事情（读文件、改文件、跑命令）。
+**技能**是 ASC 在什么情况下、按什么顺序、用哪些工具。
+
+打个比方：
+- 工具 = 螺丝刀、扳手、万用表
+- 技能 = "如何更换电机"的维修手册
+
+维修手册会告诉你：先断电（用万用表确认），再拆螺丝（用螺丝刀），再换电机，再装回去。技能也是一样——它定义了使用工具的策略和流程。
+
+## 技能长什么样
+
+技能就是一个 Markdown 文件。你不需要写代码，只需要写文档。
+
+一个技能文件包含：
+- **名称**：叫什么名字
+- **描述**：做什么用的
+- **工作流程**：具体步骤和指令
+- **可用工具**：这个技能能用哪些工具
+- **激活条件**：什么时候自动启用
+
+你用写文档的方式就能定义 ASC 的行为——这对工程师来说是最自然的方式。
+
+## 技能从哪里来
+
+ASC 会自动从多个地方找到可用的技能：
+
+```mermaid
+graph TB
+    Project["项目目录<br/>.asc/skills/"] --> Registry["技能库"]
+    User["用户目录<br/>~/.asc/skills/"] --> Registry
+    Plugin["插件系统"] --> Registry
+    MCP["MCP 服务器"] --> Registry
+    style Registry fill:#e8f4fd,stroke:#1a73e8
+```
+
+**项目目录**的技能优先级最高——这保证了项目特定的工作流程不会被个人技能覆盖。
+
+这就像公司的制度：公司制度（项目级）> 部门制度（用户级）> 个人习惯（插件级）。
+
+## 条件激活：按需启用
+
+技能可以设置"激活条件"——只有在特定情况下才启用。
+
+比如你可以定义一个 Simulink 技能，只在你的工作目录里有 `.slx` 文件时才激活。这样当你在做 Simulink 建模时，相关技能自动启用；当你在写文档时，这些技能不会干扰。
+
+这就像手机的"智能场景"——到公司自动连 WiFi，到家自动开灯。技能也是按场景自动激活。
+
+## 参数化：一个技能，多种用法
+
+技能支持参数——你可以传入不同的参数，让同一个技能处理不同的任务。
+
+比如一个"检查信号维度"技能，你可以传入不同的模型文件名，它就会检查不同的模型。你不需要为每个模型写一个技能。
+
+## 与子智能体的配合
+
+技能也是子智能体系统的基础。主智能体可以把特定的技能"授权"给子智能体，限定它只能做这些事情。
+
+这就像项目经理把"测试任务"分配给测试工程师，把"开发任务"分配给开发工程师。每个子智能体只能做被授权的事情。
+
+详见 [SubAgent](subagent.html) 模块。
+
+## 设计哲学
+
+### 用 Markdown 写，不是用代码写
+
+技能用 Markdown 而不是 Python 或 JavaScript 来定义。为什么？
+
+因为工程师写文档比写代码更自然。你不需要学编程语言，不需要搭开发环境，用任何文本编辑器就能写。
+
+Markdown 天然适合描述工作流程——它就是文档格式。你可以用标题定义步骤，用列表描述细节，用代码块嵌入命令。
+
+### 知识沉淀，不是一次性脚本
+
+技能的价值在于**复用**。你定义一次，以后每次都能用。团队成员共享同一套技能，新人不需要从头学。
+
+这就像工厂的 SOP——写一次，所有人都按标准执行。技能就是 ASC 的 SOP。
+            </script>
+
+
+        </article>
+        </div><aside class="toc-panel">
+            <div class="toc-title">本页目录</div>
+            <div id="toc" class="toc-list"></div>
+        </aside>
+    </main>
+
+    <script src="../lang.js"></script>
+</body>
+</html>
