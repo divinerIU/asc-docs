@@ -76,139 +76,181 @@
 
     <main class="main-content" id="main-content">
         <div class="content-wrap">
-            <div class="breadcrumb">
-                <a href="../index.html">Home</a><span class="sep">/</span>
-                <a href="overview.html">Docs</a><span class="sep">/</span>
-                <a href="agent.html">Runtime</a>
-            </div>
-            <article id="article">
+        <div class="breadcrumb">
+            <a href="../index.html">Home</a><span class="sep">/</span>
+            <a href="overview.html">Docs</a><span class="sep">/</span>
+            <a href="agent.html">Runtime</a>
+        </div>
+        <article id="article">
 
-                <script type="text/markdown" id="md">
+            <script type="text/markdown" id="md">
 # 执行引擎
 
-## 模块定位
+## 引擎的设计问题
 
-执行引擎是 ASC 的核心运行时引擎，由 **QueryEngine** 和 **QueryLoop** 两层组成。QueryEngine 负责全局调度（会话初始化、预算控制、错误恢复），QueryLoop 负责单轮推理（LLM 调用、工具执行、结果反馈）。
+ASC 的执行引擎要解决的核心问题是：**如何把一句自然语言变成一系列可靠的操作？**
+
+这个问题比看起来复杂得多。用户说"给门锁子系统加超时保护"，引擎需要：
+1. 把这句话和项目上下文一起发给 LLM
+2. 解析 LLM 返回的工具调用请求
+3. 检查权限、执行工具、收集结果
+4. 把结果反馈给 LLM，让它决定下一步
+5. 重复 2-4 直到 LLM 认为任务完成
+6. 在任何一步出错时都能恢复
+
+这个循环可能执行 2 次（简单问答），也可能执行 50 次（复杂建模任务）。引擎必须在两种情况下都可靠。
+
+## 两层架构：为什么分离？
+
+ASC 的引擎分为两层：**QueryEngine**（查询引擎）和 **QueryLoop**（查询循环）。这个分离不是偶然的——它解决了一个根本性的关注点冲突。
+
+### QueryEngine：会话级编排
+
+QueryEngine 负责一次完整的用户查询的生命周期。它的职责包括：
+
+- **初始化**：准备查询上下文，加载记忆，注入技能
+- **配置**：设置 token 预算、最大轮次、权限模式
+- **执行**：启动查询循环，监听事件
+- **容错**：处理上下文溢出，触发压缩，重试失败的请求
+- **决策**：判断是否需要继续执行（LLM 是否还有工具要调用？）
+- **清理**：持久化会话状态，更新记忆，通知 UI
+
+QueryEngine 不关心 LLM 的具体 API 格式，也不关心工具调用的具体协议。它只关心"这次查询是否完成"。
+
+### QueryLoop：单轮推理循环
+
+QueryLoop 负责一次完整的推理-执行-反馈循环。它的职责包括：
+
+- **组装上下文**：调用 ContextManager 准备请求
+- **流式调用 LLM**：发送请求，接收流式响应
+- **错误恢复**：处理 API 超时、限流、上下文溢出
+- **工具调度**：解析 LLM 的工具调用请求，分发执行
+- **预算检查**：跟踪 token 消耗，判断是否超限
+- **历史更新**：把 LLM 响应和工具结果追加到消息历史
+
+### 分离的好处
+
+这种分离的关键好处是**可替换性**。添加一个新的 LLM 后端（比如某个私有化部署的模型），只需要实现一个新的 QueryLoop 子类，QueryEngine 完全不用动。
+
+当前有两种 QueryLoop 实现：
+- **AnthropicQueryLoop**：处理 Anthropic API 的 content block 格式、thinking blocks、prompt caching
+- **OpenAIQueryLoop**：处理 OpenAI API 的 tool_calls 格式、reasoning_content、自动缓存
+
+两者共享 90% 的逻辑（在基类中），只有 8 个抽象方法处理格式差异。这意味着 bug 修复和性能优化通常只需要改一处。
 
 ```mermaid
-graph LR
-    Input["用户输入"] --> QE
-
-    subgraph QE["QueryEngine — 全局调度"]
-        direction TB
-        Init["初始化 + 预算"] --> Exec["调用 Loop"]
-        Exec --> Eval["评估 + 决策"]
-        Eval -->|未完成| Exec
-    end
-
-    Exec --> QL
-
-    subgraph QL["QueryLoop — 单轮推理"]
-        direction TB
-        Stream["流式调用 LLM"] --> Parse["解析响应"]
-        Parse -->|有 tool_use| ExecTool["执行工具"]
-        ExecTool --> Stream
-    end
-
-    Stream --> LLM["LLM API"]
-    ExecTool --> Tools["工具系统"]
-    Eval -->|完成| Output["最终响应"]
-
-    style QE fill:#e8f4fd,stroke:#1a73e8
-    style QL fill:#fff3e0,stroke:#e65100
+graph TB
+    User["用户输入"] --> QE["QueryEngine"]
+    QE --> Prepare["准备上下文"]
+    Prepare --> QL["QueryLoop.run()"]
+    QL --> Stream["流式调用 LLM"]
+    Stream --> Parse["解析响应"]
+    Parse --> HasTools{"有工具调用？"}
+    HasTools -->|是| Exec["执行工具"]
+    Exec --> Auth["权限检查"]
+    Auth --> Run["运行工具"]
+    Run --> Append["追加结果"]
+    Append --> Budget{"预算充足？"}
+    Budget -->|是| Stream
+    Budget -->|否| Compact["触发压缩"]
+    Compact --> Stream
+    HasTools -->|否| Done["查询完成"]
+    Done --> Persist["持久化状态"]
+    Persist --> Update["更新记忆"]
 ```
 
-## QueryEngine：全局调度
+## 双后端设计：为什么要说两种语言？
 
-QueryEngine 是外层控制器，每次用户输入触发一次 `QueryEngine.run()`，负责整个对话任务的生命周期：
+ASC 同时支持 Anthropic 和 OpenAI 两个 LLM 后端。这不是简单的"适配器模式"——两个后端的消息格式有本质差异：
 
-1. **初始化** — 加载 session（system prompt / tools / 历史），设定运行预算（max turns / token / cost / timeout）
-2. **配置** — 选择模型与参数（model / temperature / stream 策略），组装上下文（裁剪 / 摘要 / 滑窗）
-3. **执行** — 调用 QueryLoop，获取本轮结果（text / tool_result / usage）
-4. **容错** — 错误分类与恢复（退避 / 重试 / 降级模型），防止重试风暴
-5. **决策** — 预算评估（token / cost / 轮次），判断终止条件（无 tool_use / stop_reason / 达到目标）
-6. **收尾** — 更新会话状态（追加历史、日志记录），输出最终结果
+**Anthropic 格式**：
+- 工具调用是 `tool_use` 类型的 content block，嵌在 `assistant` 消息里
+- 工具结果是 `tool_result` 类型的 content block，嵌在 `user` 消息里
+- 思考过程是 `thinking` 类型的 content block
+- 支持 prompt caching（通过特殊的 breakpoint 标记）
 
-关键设计：预算约束在执行前设定，错误恢复在执行中生效，终止判断在执行后进行——形成"约束 → 执行 → 评估"的闭环。
+**OpenAI 格式**：
+- 工具调用是 `tool_calls` 数组，附在 `assistant` 消息上
+- 工具结果是独立的 `tool` 角色消息
+- 思考过程是 `reasoning_content` 字段
+- 不支持显式的 prompt caching 控制
 
-## QueryLoop：单轮推理
+如果强行把两种格式统一成一种中间表示，会丢失各自的特性（比如 Anthropic 的 thinking blocks 签名、OpenAI 的 reasoning_content）。ASC 的选择是**维护两套独立的消息历史**——`_anthropic_messages` 和 `_openai_messages`。这看起来冗余，但保证了每种格式的完整性。
 
-QueryLoop 是内层执行器，负责一次完整的 LLM 调用 + 工具执行 cycle。每次 QueryEngine 调用 `QueryLoop.run()`：
+## 事件驱动：为什么不直接打印？
 
-1. **组装上下文** — 压缩 messages[] 至可发送窗口
-2. **流式调用** — stream: true 请求 LLM API，解析返回的 content 块（文本 + tool_use 列表）
-3. **错误恢复** — 网络错误时分类、退避、重试，用户无感或温和提示
-4. **工具执行** — 并行/串行执行 tool_use，经权限检查后返回 tool_result
-5. **预算检查** — 估算 token / 费用 / 轮次，决定 continue 或 break
-6. **历史更新** — 把工具结果追加进 messages[]，进入下一轮或返回最终结果
+Agent 的所有输出——文本、思考过程、工具调用、压缩通知——都通过事件系统发出，而不是直接打印到终端。这是一个关键的架构决策。
 
-关键设计：工具执行和 LLM 调用在同一个循环内交替进行，直到 LLM 不再请求工具调用为止。
+事件系统定义了 15 种事件类型，每种都是一个不可变的数据对象：
 
-## 双引擎支持
+| 事件类型 | 触发时机 | 携带信息 |
+|---------|---------|---------|
+| TextDeltaEvent | LLM 输出文本片段 | 文本内容 |
+| ThinkingEvent | LLM 输出思考过程 | 思考内容 |
+| ToolCallEvent | LLM 请求调用工具 | 工具名、参数 |
+| ToolResultEvent | 工具执行完成 | 结果、状态（成功/失败/拒绝/中断）|
+| UsageEvent | API 调用完成 | token 使用量 |
+| CompactEvent | 上下文压缩完成 | 策略名、压缩前后 token 数 |
+| ContinuationEvent | 循环决策 | 是否继续、原因、重试次数 |
+| RetryEvent | API 调用重试 | 重试次数、等待时间 |
 
-执行引擎同时支持 Anthropic 和 OpenAI 两种 LLM 后端，通过 QueryLoop 的子类实现（AnthropicQueryLoop / OpenAIQueryLoop），两者功能对等：
+这种设计的好处是**关注点彻底分离**。Agent 不知道也不关心输出长什么样——终端 UI、Web 界面、测试用的 headless 模式，都可以通过注册不同的事件处理器来实现。
 
-| 能力 | Anthropic（Claude） | OpenAI（GPT） |
-|------|---------------------|---------------|
-| **扩展思考** | Extended Thinking 模式 | Thinking 模式 + Reasoning Effort 控制 |
-| **Prompt Caching** | 原生支持，缓存静态前缀 | 自动缓存，按 cached_tokens 计费 |
-| **流式输出** | 支持 | 支持 |
-| **工具调用** | 原生 Tool Use | Function Calling |
-| **私有化部署** | — | 支持任何 OpenAI API 兼容的服务 |
+## 资源管理：token 预算
 
-两种后端共享同一套工具链、权限系统和会话管理，切换引擎不影响工作流。
+LLM 的上下文窗口是有限资源。ASC 的资源管理策略是**双层预算**：
 
-## 事件系统
+**外层预算（QueryEngine 级别）**：
+- 在每次查询开始时设置总 token 预算
+- 在每轮推理后检查消耗量
+- 超过预算时停止执行，即使 LLM 还想继续
 
-执行引擎在执行过程中通过 StreamEvent 机制向 UI 层报告状态变化：
+**内层预算（QueryLoop 级别）**：
+- 在每次 API 调用前检查上下文是否接近窗口上限
+- 接近上限时触发上下文压缩（参见"上下文管理"章节）
+- API 调用失败（prompt too long）时紧急压缩并重试
 
-| 事件 | 触发时机 | 说明 |
-|------|----------|------|
-| `on_tool_call` | 工具调用发起前 | 携带工具名和参数，UI 显示执行进度 |
-| `on_tool_result` | 工具执行完成后 | 携带执行结果，UI 显示结果摘要 |
-| `on_response` | LLM 响应完成时 | 流式输出文字回复 |
-| `on_error` | 发生错误时 | 携带错误分类和恢复建议 |
+双层预算的设计意图是：外层控制成本（花了多少钱），内层控制可行性（能不能发出去请求）。两者独立运作，互不干扰。
 
-## 资源管理
+## 错误恢复：重试与降级
 
-执行引擎对每次会话施加三重资源限制：
+LLM API 调用会失败——网络抖动、限流、服务端错误、上下文溢出。ASC 的错误恢复策略分三级：
 
-| 资源 | 控制方式 | 目的 |
-|------|----------|------|
-| **Token 预算** | 跟踪输入 + 输出 token 数 | 防止超出模型上下文窗口 |
-| **成本控制** | 基于 token 单价累计费用 | 防止意外高额 API 费用 |
-| **最大轮次** | 限制单次任务的工具调用次数 | 防止无限循环 |
+**第一级：自动重试**。瞬时错误（5xx、超时）使用指数退避重试，最多 2 次。这是最常见的恢复路径。
 
-当资源接近上限时，执行引擎会触发上下文压缩或主动终止任务。
+**第二级：上下文重置**。如果错误是"prompt is too long"（上下文溢出），先触发全量压缩，再重试。这可能丢失一些历史信息，但能保证对话继续。
 
-## 权限与安全
+**第三级：优雅降级**。如果重试和压缩都失败了，记录错误状态，保存当前会话，通知用户。用户可以 `/resume` 恢复会话。
 
-执行引擎每次调用工具前，都会经过多层安全检查（详见 [Permissions](permissions.html)）：
+重试次数有硬上限（`MAX_LOOP_RECOVERY_ATTEMPTS = 2`），防止无限重试循环。每次重试都记录在事件流中，用户可以看到引擎在做什么。
 
-1. 工具元数据检查 — 判断操作类型（只读 / 写入 / 破坏性）
-2. 配置规则匹配 — 检查用户自定义的 allow / deny 规则
-3. 权限模式回退 — 根据当前模式决定默认行为
-4. 用户确认 — 危险操作需要明确授权
+## 中断与取消
 
-## 设计哲学
+用户可以随时按 Ctrl+C 中断 Agent 的执行。ASC 的中断设计区分两种信号：
 
-### 两层分离：调度与执行解耦
+**软中断（`_interrupt_requested`）**：在当前工具执行完成后检查。不强制终止正在进行的操作，给工具机会做清理。这是协作式的——工具必须在执行过程中检查中断信号。
 
-QueryEngine 负责"做什么"（全局调度、预算控制、错误恢复），QueryLoop 负责"怎么做"（LLM 调用、工具执行、结果反馈）。两层职责清晰，互不侵入。
+**硬中断（`_aborted`）**：立即终止查询循环。用于用户连续按 Ctrl+C 的紧急情况。
 
-### 安全内建，而非外挂
+这种两级中断设计平衡了响应性和安全性。软中断确保工具可以正常收尾（比如保存部分写入的文件），硬中断确保用户不会被卡住。
 
-权限检查不是可选的附加层，而是 QueryLoop 执行管线的内建环节（步骤 5）。每次工具调用都必须经过完整的决策链。
+## 设计权衡
 
-### 能力组合，而非功能堆砌
+### 为什么 Agent 类这么大？
 
-执行引擎不直接实现任何领域功能。它通过 Skills 注入领域知识，通过 Tools 获得执行能力，通过 MCP 连接外部服务。新增领域支持只需添加对应的 Skills 和 Tools，执行引擎无需修改。
+Agent 类约 1800 行代码，是整个系统最大的单文件。这不是失控——这是有意为之。Agent 是**集成点**：它协调上下文管理、工具执行、流式推理、会话持久化、子代理调度。把这些职责分散到多个类会增加协调成本，而不会减少总体复杂度。
+
+类内部通过 Mixin 模式（`AgentPermissionMixin`）分离权限逻辑，通过事件系统分离 UI 逻辑，通过 QueryEngine/QueryLoop 分离执行逻辑。类虽大，但每个内部组件都有清晰的边界。
+
+### 为什么后台任务用 fire-and-forget？
+
+会话标题生成和记忆蒸馏是后台任务，使用 fire-and-forget 模式——启动后不等待完成，进程退出时给 30 秒清理超时。这意味着极少数情况下标题可能丢失。
+
+这个权衡的逻辑是：标题丢失的代价很小（用户可以手动设置），而等待标题生成完成的代价很大（阻塞用户交互 2-5 秒）。在用户体验和数据完整性之间，ASC 选择了响应性。
             </script>
 
-
-            </article>
-        </div>
-        <aside class="toc-panel">
+        </article>
+        </div><aside class="toc-panel">
             <div class="toc-title">本页目录</div>
             <div id="toc" class="toc-list"></div>
         </aside>
@@ -216,5 +258,4 @@ QueryEngine 负责"做什么"（全局调度、预算控制、错误恢复），
 
     <script src="../lang.js"></script>
 </body>
-
 </html>
